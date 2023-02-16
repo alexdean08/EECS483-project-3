@@ -16,6 +16,8 @@
 #include "ast.h"
 #include "ast_type.h"
 #include "list.h"
+#include "hashtable.h"
+#include "errors.h"
 
 class Identifier;
 class Stmt;
@@ -27,7 +29,9 @@ class Decl : public Node
   
   public:
     Decl(Identifier *name);
+    virtual void Check();
     friend std::ostream& operator<<(std::ostream& out, Decl *d) { return out << d->id; }
+    Identifier* getIdentifier() { return id; }
 };
 
 class VarDecl : public Decl 
@@ -45,10 +49,14 @@ class ClassDecl : public Decl
     List<Decl*> *members;
     NamedType *extends;
     List<NamedType*> *implements;
+  
+  private:
+    Hashtable<Decl*>* hash;
 
   public:
     ClassDecl(Identifier *name, NamedType *extends, 
               List<NamedType*> *implements, List<Decl*> *members);
+    void Check();
 };
 
 class InterfaceDecl : public Decl 
@@ -66,10 +74,14 @@ class FnDecl : public Decl
     List<VarDecl*> *formals;
     Type *returnType;
     Stmt *body;
+  
+  private:
+    Hashtable<Decl*> *hash;
     
   public:
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);
+    void Check();
 };
 
 #endif

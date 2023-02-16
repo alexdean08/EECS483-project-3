@@ -2,13 +2,17 @@
 void main() {
   int a;
   string b;
-  bool c;
+  int c;
 
-  c = true;
-  b = "wow!";
-  a = 3;
-  if (c) a = a * 5;
-  Print(c, " ", a, globalCounter);
+
+  true == false;
+  //c = true && 3;
+
+  //c = true;
+  //b = "wow!";
+  //a = 3;
+  //if (c) a = a * 5;
+  //Print(c, " ", a, globalCounter);
 }
 
 int globalCounter;

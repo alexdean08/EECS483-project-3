@@ -9,8 +9,11 @@
 
 
 Program::Program(List<Decl*> *d) {
+    printf("a\n");
     Assert(d != NULL);
     (decls=d)->SetParentAll(this);
+
+    hash = new Hashtable<Decl*>();
 }
 
 void Program::Check() {
@@ -21,12 +24,64 @@ void Program::Check() {
      *      checking itself, which makes for a great use of inheritance
      *      and polymorphism in the node classes.
      */
+
+    printf("hello\n");
+    for(int i = 0; i < decls->NumElements(); ++i){
+        
+        Decl* d = hash->Lookup(decls->Nth(i)->getIdentifier()->getName());
+        if (d == NULL) {
+            hash->Enter(decls->Nth(i)->getIdentifier()->getName(), decls->Nth(i));
+        }
+        else {
+            // ERROR
+            ReportError::DeclConflict(decls->Nth(i), d);
+        }
+        
+    }
+    
+    for(int i = 0; i < decls->NumElements(); ++i){
+        decls->Nth(i)->Check();
+    }
+
+}
+
+void Stmt::Check() {
+   
+}
+
+void StmtBlock::Check() {
+    
+    
+
+    // Check variable declarations
+    for(int i = 0; i < decls->NumElements(); ++i){
+
+        // if member already there, return error
+        Decl* d = hash->Lookup(decls->Nth(i)->getIdentifier()->getName());
+        
+        if (d == NULL) {
+            // add to new hashmap
+            hash->Enter(decls->Nth(i)->getIdentifier()->getName(), decls->Nth(i));
+        }
+        else {
+            // ERROR
+            ReportError::DeclConflict(decls->Nth(i), d);
+        }
+    }
+
+    // Check stmts
+    //printf("hello\n");
+    for(int i = 0; i < stmts->NumElements(); ++i) {
+        stmts->Nth(i)->Check();
+    }
+
 }
 
 StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
     Assert(d != NULL && s != NULL);
     (decls=d)->SetParentAll(this);
     (stmts=s)->SetParentAll(this);
+    hash = new Hashtable<Decl*>();
 }
 
 ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) { 
@@ -56,6 +111,18 @@ ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) {
 PrintStmt::PrintStmt(List<Expr*> *a) {    
     Assert(a != NULL);
     (args=a)->SetParentAll(this);
+}
+
+void PrintStmt::Check(){
+    // Check args
+    printf("a\n");
+    args->NumElements();
+    printf("here\n");
+
+    
+    for(int i = 0; i < args->NumElements(); ++i) {
+        args->Nth(i)->Check();
+    }
 }
 
 

@@ -39,6 +39,8 @@ class Node
     yyltype *location;
     Node *parent;
 
+    bool containsIdent(const char* ident);
+
   public:
     Node(yyltype loc);
     Node();
@@ -57,6 +59,7 @@ class Identifier : public Node
   public:
     Identifier(yyltype loc, const char *name);
     friend std::ostream& operator<<(std::ostream& out, Identifier *id) { return out << id->name; }
+    char* getName() { return name; }
 };
 
 

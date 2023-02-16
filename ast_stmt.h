@@ -15,6 +15,8 @@
 
 #include "list.h"
 #include "ast.h"
+#include "hashtable.h"
+#include "errors.h"
 
 class Decl;
 class VarDecl;
@@ -25,9 +27,13 @@ class Program : public Node
   protected:
      List<Decl*> *decls;
      
+  private:
+     Hashtable<Decl*>* hash;
+     
   public:
      Program(List<Decl*> *declList);
      void Check();
+     bool containsIdent(const char* ident);
 };
 
 class Stmt : public Node
@@ -35,6 +41,7 @@ class Stmt : public Node
   public:
      Stmt() : Node() {}
      Stmt(yyltype loc) : Node(loc) {}
+     virtual void Check();
 };
 
 class StmtBlock : public Stmt 
@@ -42,9 +49,13 @@ class StmtBlock : public Stmt
   protected:
     List<VarDecl*> *decls;
     List<Stmt*> *stmts;
+  
+  private:
+    Hashtable<Decl *> *hash;
     
   public:
     StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
+    void Check();
 };
 
   
@@ -111,6 +122,7 @@ class PrintStmt : public Stmt
     
   public:
     PrintStmt(List<Expr*> *arguments);
+    void Check();
 };
 
 

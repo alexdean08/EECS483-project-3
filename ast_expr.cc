@@ -10,19 +10,23 @@
 
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
+    type = Type::intType;
     value = val;
 }
 
 DoubleConstant::DoubleConstant(yyltype loc, double val) : Expr(loc) {
+    type = Type::doubleType;
     value = val;
 }
 
 BoolConstant::BoolConstant(yyltype loc, bool val) : Expr(loc) {
+    type = Type::boolType;
     value = val;
 }
 
 StringConstant::StringConstant(yyltype loc, const char *val) : Expr(loc) {
     Assert(val != NULL);
+    type = Type::stringType;
     value = strdup(val);
 }
 
@@ -82,4 +86,60 @@ NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
     (elemType=et)->SetParent(this);
 }
 
-       
+bool bothType(Expr* left, Expr* right, Type* type) {
+    return left->type->IsEquivalentTo(type) && right->type->IsEquivalentTo(type);
+}
+
+void ArithmeticExpr::Check(){
+
+    left->Check();
+    right->Check();
+    if(!bothType(left, right, Type::intType) && !bothType(left, right, Type::doubleType)) {
+        ReportError::IncompatibleOperands(op, left->type, right->type);
+        type = Type::nullType;
+    }
+    else{
+        type = left->type;
+    }
+     
+    
+}
+
+void RelationalExpr::Check() {
+    left->Check();
+    right->Check();
+    if(!bothType(left, right, Type::intType) && !bothType(left, right, Type::doubleType)) {
+        ReportError::IncompatibleOperands(op, left->type, right->type);
+        type = Type::nullType;
+    }
+    else{
+        type = left->type;
+    }
+}
+
+void EqualityExpr::Check() {
+    left->Check();
+    right->Check();
+    if(!left->type->IsEquivalentTo(right->type)) {
+        ReportError::IncompatibleOperands(op, left->type, right->type);
+    }
+    type = Type::boolType;
+}
+
+void LogicalExpr::Check() {
+    left->Check();
+    right->Check();
+    if(!bothType(left, right, Type::boolType)) {
+        ReportError::IncompatibleOperands(op, left->type, right->type);
+    }
+    type = Type::boolType;
+}
+
+void AssignExpr::Check() {
+    left->Check();
+    right->Check();
+    if(!left->type->IsEquivalentTo(right->type)) {
+        ReportError::IncompatibleOperands(op, left->type, right->type);
+    }
+    type = left->type;
+}

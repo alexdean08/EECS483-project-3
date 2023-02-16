@@ -26,6 +26,8 @@ class Expr : public Stmt
   public:
     Expr(yyltype loc) : Stmt(loc) {}
     Expr() : Stmt() {}
+    virtual void Check(){}
+    Type* type = NULL;
 };
 
 /* This node type is used for those places where an expression is optional.
@@ -74,6 +76,7 @@ class StringConstant : public Expr
 
 class NullConstant: public Expr 
 {
+
   public: 
     NullConstant(yyltype loc) : Expr(loc) {}
 };
@@ -104,12 +107,14 @@ class ArithmeticExpr : public CompoundExpr
   public:
     ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
+    virtual void Check();
 };
 
 class RelationalExpr : public CompoundExpr 
 {
   public:
     RelationalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
+    void Check();
 };
 
 class EqualityExpr : public CompoundExpr 
@@ -117,6 +122,7 @@ class EqualityExpr : public CompoundExpr
   public:
     EqualityExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "EqualityExpr"; }
+    void Check();
 };
 
 class LogicalExpr : public CompoundExpr 
@@ -125,6 +131,7 @@ class LogicalExpr : public CompoundExpr
     LogicalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     LogicalExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
     const char *GetPrintNameForNode() { return "LogicalExpr"; }
+    void Check();
 };
 
 class AssignExpr : public CompoundExpr 
@@ -132,6 +139,7 @@ class AssignExpr : public CompoundExpr
   public:
     AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "AssignExpr"; }
+    void Check();
 };
 
 class LValue : public Expr 
