@@ -32,8 +32,9 @@ class Program : public Node
      
   public:
      Program(List<Decl*> *declList);
-     void Check();
+     bool Check();
      bool containsIdent(const char* ident);
+     Type * CheckHash(Identifier *i);
 };
 
 class Stmt : public Node
@@ -41,7 +42,8 @@ class Stmt : public Node
   public:
      Stmt() : Node() {}
      Stmt(yyltype loc) : Node(loc) {}
-     virtual void Check();
+     virtual bool Check();
+     virtual Type *CheckHash(Identifier *i);
 };
 
 class StmtBlock : public Stmt 
@@ -55,7 +57,9 @@ class StmtBlock : public Stmt
     
   public:
     StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
-    void Check();
+    Type *CheckHash(Identifier *i);
+    
+    bool Check();
 };
 
   
@@ -67,6 +71,8 @@ class ConditionalStmt : public Stmt
   
   public:
     ConditionalStmt(Expr *testExpr, Stmt *body);
+    virtual bool Check();
+    
 };
 
 class LoopStmt : public ConditionalStmt 
@@ -74,6 +80,7 @@ class LoopStmt : public ConditionalStmt
   public:
     LoopStmt(Expr *testExpr, Stmt *body)
             : ConditionalStmt(testExpr, body) {}
+    //virtual bool Check();
 };
 
 class ForStmt : public LoopStmt 
@@ -89,6 +96,8 @@ class WhileStmt : public LoopStmt
 {
   public:
     WhileStmt(Expr *test, Stmt *body) : LoopStmt(test, body) {}
+    bool Check();
+    Type *CheckHash(Identifier *i);
 };
 
 class IfStmt : public ConditionalStmt 
@@ -98,6 +107,8 @@ class IfStmt : public ConditionalStmt
   
   public:
     IfStmt(Expr *test, Stmt *thenBody, Stmt *elseBody);
+    bool Check();
+    Type *CheckHash(Identifier *i);
 };
 
 class BreakStmt : public Stmt 
@@ -122,7 +133,7 @@ class PrintStmt : public Stmt
     
   public:
     PrintStmt(List<Expr*> *arguments);
-    void Check();
+    bool Check();
 };
 
 

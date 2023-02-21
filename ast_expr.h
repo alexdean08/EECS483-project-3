@@ -26,7 +26,7 @@ class Expr : public Stmt
   public:
     Expr(yyltype loc) : Stmt(loc) {}
     Expr() : Stmt() {}
-    virtual void Check(){}
+    virtual bool Check(){printf("Expr check\n");}
     Type* type = NULL;
 };
 
@@ -107,14 +107,14 @@ class ArithmeticExpr : public CompoundExpr
   public:
     ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
-    virtual void Check();
+    virtual bool Check();
 };
 
 class RelationalExpr : public CompoundExpr 
 {
   public:
     RelationalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
-    void Check();
+    bool Check();
 };
 
 class EqualityExpr : public CompoundExpr 
@@ -122,7 +122,7 @@ class EqualityExpr : public CompoundExpr
   public:
     EqualityExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "EqualityExpr"; }
-    void Check();
+    bool Check();
 };
 
 class LogicalExpr : public CompoundExpr 
@@ -131,7 +131,7 @@ class LogicalExpr : public CompoundExpr
     LogicalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     LogicalExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
     const char *GetPrintNameForNode() { return "LogicalExpr"; }
-    void Check();
+    bool Check();
 };
 
 class AssignExpr : public CompoundExpr 
@@ -139,13 +139,14 @@ class AssignExpr : public CompoundExpr
   public:
     AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "AssignExpr"; }
-    void Check();
+    bool Check();
 };
 
 class LValue : public Expr 
 {
   public:
-    LValue(yyltype loc) : Expr(loc) {}
+    LValue(yyltype loc) : Expr(loc) {/*printf("%d\n", loc.first_line );*/}
+    //void Check();
 };
 
 class This : public Expr 
@@ -161,6 +162,7 @@ class ArrayAccess : public LValue
     
   public:
     ArrayAccess(yyltype loc, Expr *base, Expr *subscript);
+    bool Check();
 };
 
 /* Note that field access is used both for qualified names
@@ -176,6 +178,7 @@ class FieldAccess : public LValue
     
   public:
     FieldAccess(Expr *base, Identifier *field); //ok to pass NULL base
+    bool Check();
 };
 
 /* Like field access, call is used both for qualified base.field()
@@ -210,6 +213,7 @@ class NewArrayExpr : public Expr
     
   public:
     NewArrayExpr(yyltype loc, Expr *sizeExpr, Type *elemType);
+    bool Check();
 };
 
 class ReadIntegerExpr : public Expr

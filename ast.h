@@ -32,6 +32,7 @@
 #include <stdlib.h>   // for NULL
 #include "location.h"
 #include <iostream>
+#include "errors.h"
 
 class Node 
 {
@@ -48,6 +49,7 @@ class Node
     yyltype *GetLocation()   { return location; }
     void SetParent(Node *p)  { parent = p; }
     Node *GetParent()        { return parent; }
+    virtual Type *CheckHash(Identifier *i) { printf("Node class CheckHash()\n"); return NULL; }
 };
    
 

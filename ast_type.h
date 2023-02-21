@@ -20,14 +20,17 @@
 class Type : public Node 
 {
   protected:
-    char *typeName;
+    
 
   public :
+    char *typeName;
     static Type *intType, *doubleType, *boolType, *voidType,
                 *nullType, *stringType, *errorType;
 
     Type(yyltype loc) : Node(loc) {}
     Type(const char *str);
+    virtual bool Check() {return true;}
+    Type * CheckHash(Identifier *i) {return this->GetParent()->CheckHash(i);}
     
     virtual void PrintToStream(std::ostream& out) { out << typeName; }
     friend std::ostream& operator<<(std::ostream& out, Type *t) { t->PrintToStream(out); return out; }
@@ -41,16 +44,17 @@ class NamedType : public Type
     
   public:
     NamedType(Identifier *i);
-    
+    bool Check();
     void PrintToStream(std::ostream& out) { out << id; }
 };
 
 class ArrayType : public Type 
 {
   protected:
-    Type *elemType;
+    
 
   public:
+    Type *elemType;
     ArrayType(yyltype loc, Type *elemType);
     
     void PrintToStream(std::ostream& out) { out << elemType << "[]"; }

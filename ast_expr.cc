@@ -9,6 +9,11 @@
 #include "errors.h"
 
 
+/*void Expr::Check(){
+    printf("5\n");
+    return
+}*/
+
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
     type = Type::intType;
     value = val;
@@ -55,6 +60,24 @@ ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
     (base=b)->SetParent(this); 
     (subscript=s)->SetParent(this);
 }
+
+bool ArrayAccess::Check(){
+    base->Check();
+    
+    if(dynamic_cast<ArrayType*>(base->type) == nullptr){
+        ReportError::BracketsOnNonArray(base);
+        type = Type::errorType;
+    }
+    else{
+        type = dynamic_cast<ArrayType*>(base->type)->elemType;
+    }
+
+    subscript->Check();
+    if(!subscript->type->IsEquivalentTo(Type::intType) && !subscript->type->IsEquivalentTo(Type::boolType))
+        ReportError::SubscriptNotInteger(subscript);
+    return true;
+    //if(base->type != Type::a)
+}
      
 FieldAccess::FieldAccess(Expr *b, Identifier *f) 
   : LValue(b? Join(b->GetLocation(), f->GetLocation()) : *f->GetLocation()) {
@@ -86,60 +109,126 @@ NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
     (elemType=et)->SetParent(this);
 }
 
+bool NewArrayExpr::Check() {
+    //printf("sdfds\n");
+    size->Check();
+    if(!size->type->IsEquivalentTo(Type::intType) && !size->type->IsEquivalentTo(Type::errorType)) {
+        ReportError::NewArraySizeNotInteger(size);
+    }
+    elemType->Check();
+    type=new ArrayType(*location, elemType);
+    return true;
+}
+
 bool bothType(Expr* left, Expr* right, Type* type) {
     return left->type->IsEquivalentTo(type) && right->type->IsEquivalentTo(type);
 }
 
-void ArithmeticExpr::Check(){
+bool ArithmeticExpr::Check(){
 
     left->Check();
     right->Check();
-    if(!bothType(left, right, Type::intType) && !bothType(left, right, Type::doubleType)) {
+    
+    if(left->type->IsEquivalentTo(Type::errorType) || right->type->IsEquivalentTo(Type::errorType)) {
+        type = Type::errorType;
+    }
+    else if(!bothType(left, right, Type::intType) && !bothType(left, right, Type::doubleType)) {
         ReportError::IncompatibleOperands(op, left->type, right->type);
-        type = Type::nullType;
+        type = Type::errorType;
     }
     else{
         type = left->type;
     }
      
-    
+    return true;
 }
 
-void RelationalExpr::Check() {
+bool RelationalExpr::Check() {
+    
     left->Check();
     right->Check();
-    if(!bothType(left, right, Type::intType) && !bothType(left, right, Type::doubleType)) {
+
+    if(left->type->IsEquivalentTo(Type::errorType) || right->type->IsEquivalentTo(Type::errorType)) {
+        type = Type::errorType; //change to boolType???
+    }
+    else if(!bothType(left, right, Type::intType) && !bothType(left, right, Type::doubleType)) {
         ReportError::IncompatibleOperands(op, left->type, right->type);
-        type = Type::nullType;
+        type = Type::boolType; //changed from errorType (correct????)
     }
     else{
-        type = left->type;
+        type = Type::boolType;
     }
+    return true;
 }
 
-void EqualityExpr::Check() {
+bool EqualityExpr::Check() {
+    
     left->Check();
     right->Check();
-    if(!left->type->IsEquivalentTo(right->type)) {
-        ReportError::IncompatibleOperands(op, left->type, right->type);
+    if(left->type->IsEquivalentTo(Type::errorType) || right->type->IsEquivalentTo(Type::errorType)) {
+        type = Type::errorType;
     }
-    type = Type::boolType;
+    else if(!left->type->IsEquivalentTo(right->type)) {
+        ReportError::IncompatibleOperands(op, left->type, right->type);
+        type = Type::boolType;
+    }
+    else{
+        type = Type::boolType;
+    }
+    return true;
 }
 
-void LogicalExpr::Check() {
+
+bool LogicalExpr::Check() {
     left->Check();
     right->Check();
-    if(!bothType(left, right, Type::boolType)) {
-        ReportError::IncompatibleOperands(op, left->type, right->type);
+    if(left->type->IsEquivalentTo(Type::errorType) || right->type->IsEquivalentTo(Type::errorType)) {
+        type = Type::errorType;
     }
-    type = Type::boolType;
+    else if(!bothType(left, right, Type::boolType)) {
+        ReportError::IncompatibleOperands(op, left->type, right->type);
+        type = Type::boolType;
+    }
+    else {
+        type = Type::boolType;
+    }
+    return true;
 }
 
-void AssignExpr::Check() {
+bool AssignExpr::Check() {
+    
     left->Check();
+    
     right->Check();
-    if(!left->type->IsEquivalentTo(right->type)) {
+    
+
+    if(!left->type->IsEquivalentTo(right->type) && !right->type->IsEquivalentTo(Type::errorType) && !left->type->IsEquivalentTo(Type::errorType)) {
         ReportError::IncompatibleOperands(op, left->type, right->type);
     }
+
     type = left->type;
+    return true;
+}
+
+bool FieldAccess::Check() {
+    //printf(typeid(this->GetParent()).name());
+    //printf("\n");
+    Type *t = this->GetParent()->CheckHash(field);
+    if(t == Type::nullType) {
+        ReportError::IdentifierNotDeclared(field, LookingForVariable);
+        //std::cout << "type not found\n";
+    }
+        
+    
+    type = t;
+    
+    return true;
+    /*
+
+    if(base==NULL){
+
+    }
+    else{
+        
+    }*/
 }

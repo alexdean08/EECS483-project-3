@@ -79,7 +79,10 @@ extern int yydebug;
     T_IntConstant = 289,
     T_DoubleConstant = 290,
     T_BoolConstant = 291,
-    ArithmeticMinus = 292
+    T_UnaryMinus = 292,
+    T_Increm = 293,
+    T_Decrem = 294,
+    T_Lower_Than_Else = 295
   };
 #endif
 /* Tokens.  */
@@ -117,14 +120,17 @@ extern int yydebug;
 #define T_IntConstant 289
 #define T_DoubleConstant 290
 #define T_BoolConstant 291
-#define ArithmeticMinus 292
+#define T_UnaryMinus 292
+#define T_Increm 293
+#define T_Decrem 294
+#define T_Lower_Than_Else 295
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 41 "parser.y" /* yacc.c:1909  */
+#line 20 "parser.y" /* yacc.c:1909  */
 
     int integerConstant;
     bool boolConstant;
@@ -133,49 +139,21 @@ union YYSTYPE
     char identifier[MaxIdentLen+1]; // +1 for terminating null
     Decl *decl;
     List<Decl*> *declList;
-    
-    VarDecl *vd;
-    ClassDecl *cd;
-    Decl *cc;
-    List<Decl*> *lcc;
+    Type *type;
+    NamedType *cType;
+    List<NamedType*> *cTypeList;
+    FnDecl *fDecl;
+    VarDecl *var;
+    List<VarDecl*> *varList;
+    Expr *expr;
+    List<Expr*> *exprList;
+    Stmt *stmt;
+    List<Stmt*> *stmtList;
+    LValue *lvalue;
+    //Case *aCase;
+    //List<Case*> *caseList;
 
-    InterfaceDecl *id;
-    FnDecl *fd;
-    Type *t;
-    NamedType *nt;
-    List<NamedType*> *ntl;
-    ArrayType *at;
-    StmtBlock *sb;
-    StmtBlock *fc;
-    Stmt *s;
-    IfStmt *ifs;
-    WhileStmt *ws;
-    ForStmt *fs;
-    BreakStmt *bs;
-    ReturnStmt *rs;
-    PrintStmt *ps;
-    Expr *e;
-    Call *c;
-    LValue *lv;
-
-    List<VarDecl*> *vl;
-    List<Expr*> *el;
-    List<Stmt*> *ls;
-    List<VarDecl*> *vdl;
-    Expr *con;
-    EmptyExpr *ee;
-
-    //CaseStmt* cs;
-    //List<CaseStmt*>* lcs;
-    //SwitchStmt* ss;
-    //DefaultCaseStmt* de;
-
-    List<Expr*>* act;
-
-    List<Decl*>* pl;
-    FnDecl* pro;
-
-#line 179 "y.tab.h" /* yacc.c:1909  */
+#line 157 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

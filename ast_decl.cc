@@ -14,9 +14,9 @@ Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
 }
 
 // TODO
-void Decl::Check(){
-    printf("here\n");
-    return;
+bool Decl::Check(){
+    printf("Decl check\n");
+    return true;
 }
 
 
@@ -24,7 +24,20 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     Assert(n != NULL && t != NULL);
     (type=t)->SetParent(this);
 }
-  
+
+bool VarDecl::Check(){
+    if(type->Check()){
+        return true;
+    }
+    else {
+        type = Type::errorType;
+        return false;
+    }
+}
+
+Type *VarDecl::CheckHash(Identifier *i) {
+    return this->GetParent()->CheckHash(i);
+}
 
 ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<Decl*> *m) : Decl(n) {
     // extends can be NULL, impl & mem may be empty lists but cannot be NULL
@@ -36,7 +49,7 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
     hash = new Hashtable<Decl*>();
 }
 
-void ClassDecl::Check() {
+bool ClassDecl::Check() {
     for(int i = 0; i < members->NumElements(); ++i){
         // TODO Check if overriding function
 
@@ -53,6 +66,7 @@ void ClassDecl::Check() {
         }
 
     }
+    return true;
 }
 
 InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
@@ -73,11 +87,12 @@ void FnDecl::SetFunctionBody(Stmt *b) {
     (body=b)->SetParent(this);
 }
 
-void FnDecl::Check() {
+bool FnDecl::Check() {
     // loop through formals
+    
     for(int i = 0; i < formals->NumElements(); ++i){
         // TODO Check if overriding function
-
+        
         // if formal already there, return error
         Decl* d = hash->Lookup(formals->Nth(i)->getIdentifier()->getName());
         
@@ -92,11 +107,18 @@ void FnDecl::Check() {
 
     }
     
-    body->Check(); // then go through body and ensure tyoe correctness and such 
+    body->Check(); // then go through body and ensure type correctness and such 
+    return true;
 }
 
-// bool FnDecl::isPresent(char* name){
-//     // see if name is in hashmap
-//     // if name is in hashmap, return the thing here
-//     // else look in parent
-// }
+Type *FnDecl::CheckHash(Identifier *i) {
+    for(int in = 0; in < formals->NumElements(); ++in){
+        if(strcmp(formals->Nth(in)->getIdentifier()->getName(), (i)->getName() ) == 0) {
+            
+            return formals->Nth(in)->type;
+        }
+    }
+    
+    return this->GetParent()->CheckHash(i);
+}
+

@@ -9,14 +9,14 @@
 
 
 Program::Program(List<Decl*> *d) {
-    printf("a\n");
+    //printf("a\n");
     Assert(d != NULL);
     (decls=d)->SetParentAll(this);
 
     hash = new Hashtable<Decl*>();
 }
 
-void Program::Check() {
+bool Program::Check() {
     /* pp3: here is where the semantic analyzer is kicked off.
      *      The general idea is perform a tree traversal of the
      *      entire program, examining all constructs for compliance
@@ -25,7 +25,7 @@ void Program::Check() {
      *      and polymorphism in the node classes.
      */
 
-    printf("hello\n");
+    //printf("hello\n");
     for(int i = 0; i < decls->NumElements(); ++i){
         
         Decl* d = hash->Lookup(decls->Nth(i)->getIdentifier()->getName());
@@ -42,25 +42,49 @@ void Program::Check() {
     for(int i = 0; i < decls->NumElements(); ++i){
         decls->Nth(i)->Check();
     }
-
+    return true;
 }
 
-void Stmt::Check() {
-   
+Type * Program::CheckHash(Identifier *i){
+    printf("PROGRAM CHECK HASH\n");
+    for(int in = 0; in < decls->NumElements(); ++in){
+        if(strcmp(decls->Nth(in)->getIdentifier()->getName(), (i)->getName() ) == 0) {
+            //printf("%d\n", decls->Nth(in)->type->GetLocation()->first_line);
+            printf("FIUND\n");
+            return decls->Nth(in)->type;
+        }
+    }
+    //printf("NULL VAL \n");
+    return Type::nullType;
 }
 
-void StmtBlock::Check() {
-    
-    
+bool Stmt::Check() {
+    printf("stmt\n");
+   return true;
+   //printf("Stmt Check running\n");
+}
+
+Type * Stmt::CheckHash(Identifier *i){
+    //printf("running CheckHash in Stmt\n");
+    return this->GetParent()->CheckHash(i);
+}
+
+bool StmtBlock::Check() {
+    printf("stmt block check \n");
+    //printf(this->GetParent()->);
+    //printf("\n");
 
     // Check variable declarations
     for(int i = 0; i < decls->NumElements(); ++i){
+
+        decls->Nth(i)->Check();
 
         // if member already there, return error
         Decl* d = hash->Lookup(decls->Nth(i)->getIdentifier()->getName());
         
         if (d == NULL) {
             // add to new hashmap
+            //d->SetParent(this);
             hash->Enter(decls->Nth(i)->getIdentifier()->getName(), decls->Nth(i));
         }
         else {
@@ -68,12 +92,26 @@ void StmtBlock::Check() {
             ReportError::DeclConflict(decls->Nth(i), d);
         }
     }
-
-    // Check stmts
-    //printf("hello\n");
+   
     for(int i = 0; i < stmts->NumElements(); ++i) {
+
         stmts->Nth(i)->Check();
+        printf("done check\n");
     }
+    return true;
+}
+
+Type *StmtBlock::CheckHash(Identifier *i) {
+    
+    for(int in = 0; in < decls->NumElements(); ++in){
+
+        if(strcmp(decls->Nth(in)->getIdentifier()->getName(), (i)->getName() ) == 0) {
+            
+            return decls->Nth(in)->type;
+        }
+    }
+    
+    return this->GetParent()->CheckHash(i);
 
 }
 
@@ -90,6 +128,21 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
     (body=b)->SetParent(this);
 }
 
+
+bool ConditionalStmt::Check() {
+    printf("Conditional check\n");
+    test->Check();
+    //printf("%d\n", test->GetLocation()->first_line);
+    
+    if(!test->type->IsEquivalentTo(Type::boolType)){
+        ReportError::TestNotBoolean(test);
+    }
+    
+
+    body->Check();
+    return true;
+}
+
 ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) { 
     Assert(i != NULL && t != NULL && s != NULL && b != NULL);
     (init=i)->SetParent(this);
@@ -100,6 +153,51 @@ IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) {
     Assert(t != NULL && tb != NULL); // else can be NULL
     elseBody = eb;
     if (elseBody) elseBody->SetParent(this);
+}
+
+bool IfStmt::Check() {
+    test->Check();
+    //printf("%d\n", test->GetLocation()->first_line);
+    if(!test->type->IsEquivalentTo(Type::boolType)){
+        ReportError::TestNotBoolean(test);
+    }
+
+    
+    
+    body->Check();
+    if(elseBody)
+        elseBody->Check();
+    return true;
+}
+
+
+Type *IfStmt::CheckHash(Identifier *i) {
+    return this->GetParent()->CheckHash(i);
+}
+
+/*bool LoopStmt::Check() {
+    printf("LoopStmt check\n");
+    return true;
+}*/
+
+bool WhileStmt::Check() {
+    printf("While check\n");
+    test->Check();
+    //printf("%d\n", test->GetLocation()->first_line);
+    
+    if(!test->type->IsEquivalentTo(Type::boolType)){
+        ReportError::TestNotBoolean(test);
+    }
+    
+
+    body->Check();
+    return true;
+}
+
+
+Type *WhileStmt::CheckHash(Identifier *i) {
+    
+    return this->GetParent()->CheckHash(i);
 }
 
 
@@ -113,16 +211,11 @@ PrintStmt::PrintStmt(List<Expr*> *a) {
     (args=a)->SetParentAll(this);
 }
 
-void PrintStmt::Check(){
-    // Check args
-    printf("a\n");
-    args->NumElements();
-    printf("here\n");
-
-    
+bool PrintStmt::Check(){
     for(int i = 0; i < args->NumElements(); ++i) {
         args->Nth(i)->Check();
     }
+    return true;
 }
 
 

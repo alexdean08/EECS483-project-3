@@ -1,4 +1,4 @@
 void main() {
-  Print(3);
+  Print("hello world");
 }
 
