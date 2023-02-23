@@ -49,16 +49,17 @@ class Node
     yyltype *GetLocation()   { return location; }
     void SetParent(Node *p)  { parent = p; }
     Node *GetParent()        { return parent; }
-    virtual Type *CheckHash(Identifier *i) { printf("Node class CheckHash()\n"); return NULL; }
+    virtual Decl *CheckHash(Identifier *i) { printf("Node class CheckHash()\n"); return NULL; }
 };
    
 
 class Identifier : public Node 
 {
   protected:
-    char *name;
+    
     
   public:
+    char *name;
     Identifier(yyltype loc, const char *name);
     friend std::ostream& operator<<(std::ostream& out, Identifier *id) { return out << id->name; }
     char* getName() { return name; }

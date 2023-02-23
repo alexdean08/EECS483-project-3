@@ -45,17 +45,19 @@ bool Program::Check() {
     return true;
 }
 
-Type * Program::CheckHash(Identifier *i){
+Decl * Program::CheckHash(Identifier *i){
     printf("PROGRAM CHECK HASH\n");
     for(int in = 0; in < decls->NumElements(); ++in){
         if(strcmp(decls->Nth(in)->getIdentifier()->getName(), (i)->getName() ) == 0) {
             //printf("%d\n", decls->Nth(in)->type->GetLocation()->first_line);
             printf("FIUND\n");
-            return decls->Nth(in)->type;
+            return decls->Nth(in);
         }
     }
     //printf("NULL VAL \n");
-    return Type::nullType;
+    Decl *temp = new Decl(i);
+    temp->type = Type::errorType;
+    return temp;
 }
 
 bool Stmt::Check() {
@@ -64,7 +66,7 @@ bool Stmt::Check() {
    //printf("Stmt Check running\n");
 }
 
-Type * Stmt::CheckHash(Identifier *i){
+Decl * Stmt::CheckHash(Identifier *i){
     //printf("running CheckHash in Stmt\n");
     return this->GetParent()->CheckHash(i);
 }
@@ -78,7 +80,7 @@ bool StmtBlock::Check() {
     for(int i = 0; i < decls->NumElements(); ++i){
 
         decls->Nth(i)->Check();
-
+        
         // if member already there, return error
         Decl* d = hash->Lookup(decls->Nth(i)->getIdentifier()->getName());
         
@@ -94,20 +96,27 @@ bool StmtBlock::Check() {
     }
    
     for(int i = 0; i < stmts->NumElements(); ++i) {
-
-        stmts->Nth(i)->Check();
+        Stmt* s = stmts->Nth(i);
+        if(dynamic_cast<This*>(stmts->Nth(i)) != nullptr){
+            printf("Running this check\n");
+            dynamic_cast<This*>(s)->Check();
+        }
+        else{
+            s->Check();
+        }
+        
         printf("done check\n");
     }
     return true;
 }
 
-Type *StmtBlock::CheckHash(Identifier *i) {
+Decl *StmtBlock::CheckHash(Identifier *i) {
     
     for(int in = 0; in < decls->NumElements(); ++in){
 
         if(strcmp(decls->Nth(in)->getIdentifier()->getName(), (i)->getName() ) == 0) {
             
-            return decls->Nth(in)->type;
+            return decls->Nth(in);
         }
     }
     
@@ -171,7 +180,7 @@ bool IfStmt::Check() {
 }
 
 
-Type *IfStmt::CheckHash(Identifier *i) {
+Decl *IfStmt::CheckHash(Identifier *i) {
     return this->GetParent()->CheckHash(i);
 }
 
@@ -195,7 +204,7 @@ bool WhileStmt::Check() {
 }
 
 
-Type *WhileStmt::CheckHash(Identifier *i) {
+Decl *WhileStmt::CheckHash(Identifier *i) {
     
     return this->GetParent()->CheckHash(i);
 }

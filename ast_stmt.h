@@ -25,16 +25,17 @@ class Expr;
 class Program : public Node
 {
   protected:
-     List<Decl*> *decls;
+     
      
   private:
      Hashtable<Decl*>* hash;
      
   public:
+     List<Decl*> *decls;
      Program(List<Decl*> *declList);
      bool Check();
      bool containsIdent(const char* ident);
-     Type * CheckHash(Identifier *i);
+     Decl * CheckHash(Identifier *i);
 };
 
 class Stmt : public Node
@@ -43,7 +44,7 @@ class Stmt : public Node
      Stmt() : Node() {}
      Stmt(yyltype loc) : Node(loc) {}
      virtual bool Check();
-     virtual Type *CheckHash(Identifier *i);
+     virtual Decl *CheckHash(Identifier *i);
 };
 
 class StmtBlock : public Stmt 
@@ -57,7 +58,7 @@ class StmtBlock : public Stmt
     
   public:
     StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
-    Type *CheckHash(Identifier *i);
+    Decl *CheckHash(Identifier *i);
     
     bool Check();
 };
@@ -97,7 +98,7 @@ class WhileStmt : public LoopStmt
   public:
     WhileStmt(Expr *test, Stmt *body) : LoopStmt(test, body) {}
     bool Check();
-    Type *CheckHash(Identifier *i);
+    Decl *CheckHash(Identifier *i);
 };
 
 class IfStmt : public ConditionalStmt 
@@ -108,7 +109,7 @@ class IfStmt : public ConditionalStmt
   public:
     IfStmt(Expr *test, Stmt *thenBody, Stmt *elseBody);
     bool Check();
-    Type *CheckHash(Identifier *i);
+    Decl *CheckHash(Identifier *i);
 };
 
 class BreakStmt : public Stmt 

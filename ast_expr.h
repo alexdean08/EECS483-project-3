@@ -26,7 +26,8 @@ class Expr : public Stmt
   public:
     Expr(yyltype loc) : Stmt(loc) {}
     Expr() : Stmt() {}
-    virtual bool Check(){printf("Expr check\n");}
+    virtual bool Check(){printf("Expr check\n");
+                return true;}
     Type* type = NULL;
 };
 
@@ -151,8 +152,12 @@ class LValue : public Expr
 
 class This : public Expr 
 {
+  private:
+    int temp;
+
   public:
-    This(yyltype loc) : Expr(loc) {}
+    This(yyltype loc) : Expr(loc) {temp = 3;}
+    bool Check() override;
 };
 
 class ArrayAccess : public LValue 
@@ -191,9 +196,12 @@ class Call : public Expr
     Expr *base;	// will be NULL if no explicit base
     Identifier *field;
     List<Expr*> *actuals;
+    void validateFormals(Identifier *FnIdentifier, List<VarDecl*> *decl_formals, List<Expr*> *call_actuals);
+    void checkActuals();
     
   public:
     Call(yyltype loc, Expr *base, Identifier *field, List<Expr*> *args);
+    bool Check();
 };
 
 class NewExpr : public Expr

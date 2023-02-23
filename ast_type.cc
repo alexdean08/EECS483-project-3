@@ -33,11 +33,12 @@ Type::Type(const char *n) {
 NamedType::NamedType(Identifier *i) : Type(*i->GetLocation()) {
     Assert(i != NULL);
     (id=i)->SetParent(this);
+    typeName = strdup(i->name);
 } 
 
 bool NamedType::Check() {
     printf("NAMED CHECK\n");
-    Type * CheckedHash = this->GetParent()->CheckHash(id);
+    Type * CheckedHash = this->GetParent()->CheckHash(id)->type;
     //printf("\n\n%c\n\n\n\n", *(CheckedHash->typeName));
     if(CheckedHash == Type::nullType || CheckedHash == Type::intType || CheckedHash == Type::stringType || CheckedHash == Type::boolType
          || CheckedHash == Type::boolType || CheckedHash == Type::doubleType || CheckedHash == Type::errorType) {
@@ -53,6 +54,9 @@ bool NamedType::Check() {
 ArrayType::ArrayType(yyltype loc, Type *et) : Type(loc) {
     Assert(et != NULL);
     (elemType=et)->SetParent(this);
+
+    typeName = strdup(et->typeName);
+    strcat(typeName, "[]");
 }
 
 

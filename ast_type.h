@@ -15,6 +15,7 @@
 #include "ast.h"
 #include "list.h"
 #include <iostream>
+#include <sstream>
 
 
 class Type : public Node 
@@ -30,11 +31,15 @@ class Type : public Node
     Type(yyltype loc) : Node(loc) {}
     Type(const char *str);
     virtual bool Check() {return true;}
-    Type * CheckHash(Identifier *i) {return this->GetParent()->CheckHash(i);}
+    Decl * CheckHash(Identifier *i) {return this->GetParent()->CheckHash(i);}
     
     virtual void PrintToStream(std::ostream& out) { out << typeName; }
     friend std::ostream& operator<<(std::ostream& out, Type *t) { t->PrintToStream(out); return out; }
-    virtual bool IsEquivalentTo(Type *other) { return this == other; }
+    virtual bool IsEquivalentTo(Type *other) {  std::ostringstream l;
+                                                l << this;
+                                                std::ostringstream r;
+                                                r << other;
+                                                return l.str() == r.str(); }
 };
 
 class NamedType : public Type 

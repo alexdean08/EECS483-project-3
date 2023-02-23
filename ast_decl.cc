@@ -35,7 +35,7 @@ bool VarDecl::Check(){
     }
 }
 
-Type *VarDecl::CheckHash(Identifier *i) {
+Decl *VarDecl::CheckHash(Identifier *i) {
     return this->GetParent()->CheckHash(i);
 }
 
@@ -66,7 +66,31 @@ bool ClassDecl::Check() {
         }
 
     }
+
+    for(int i = 0; i < members->NumElements(); ++i){
+        members->Nth(i)->Check();
+    }
     return true;
+}
+
+Decl * ClassDecl::CheckHash(Identifier *id){
+    printf("CLASS DECL CHECK HASH\n");
+    for(int i = 0; i < members->NumElements(); ++i){
+        if(strcmp(members->Nth(i)->getIdentifier()->getName(), id->getName()) == 0){
+            printf("FOUND MEMBER\n");
+            return members->Nth(i);
+        }
+    }
+
+    printf("CANNoT FIND\n");
+
+    //HERE CHECK EXTENDS
+
+    //THEN HERE CHECK IMPLEMENTS
+
+    Decl *temp = new Decl(id);
+    temp->type = Type::errorType;
+    return temp;
 }
 
 InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
@@ -111,11 +135,11 @@ bool FnDecl::Check() {
     return true;
 }
 
-Type *FnDecl::CheckHash(Identifier *i) {
+Decl *FnDecl::CheckHash(Identifier *i) {
     for(int in = 0; in < formals->NumElements(); ++in){
         if(strcmp(formals->Nth(in)->getIdentifier()->getName(), (i)->getName() ) == 0) {
             
-            return formals->Nth(in)->type;
+            return formals->Nth(in);
         }
     }
     
