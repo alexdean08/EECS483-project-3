@@ -14,7 +14,7 @@ Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
 }
 
 // TODO
-bool Decl::Check(){
+bool Decl::Check(bool reportError){
     printf("Decl check\n");
     return true;
 }
@@ -25,8 +25,8 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     (type=t)->SetParent(this);
 }
 
-bool VarDecl::Check(){
-    if(type->Check()){
+bool VarDecl::Check(bool reportError){
+    if(type->Check(true)){
         return true;
     }
     else {
@@ -47,9 +47,11 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
     (implements=imp)->SetParentAll(this);
     (members=m)->SetParentAll(this);
     hash = new Hashtable<Decl*>();
+    type = new NamedType(n);
 }
 
-bool ClassDecl::Check() {
+bool ClassDecl::Check(bool reportError) {
+    
     for(int i = 0; i < members->NumElements(); ++i){
         // TODO Check if overriding function
 
@@ -68,7 +70,7 @@ bool ClassDecl::Check() {
     }
 
     for(int i = 0; i < members->NumElements(); ++i){
-        members->Nth(i)->Check();
+        members->Nth(i)->Check(true);
     }
     return true;
 }
@@ -85,9 +87,42 @@ Decl * ClassDecl::CheckHash(Identifier *id){
     printf("CANNoT FIND\n");
 
     //HERE CHECK EXTENDS
+    if(extends != NULL){
+        printf("EXTENDS CHECK\n");
+        Node *parent = this->GetParent();
+        if(dynamic_cast<Program*>(parent) == nullptr){
+            //error. somehow class is in some function or something instead of directly in program? Don't think this is even possible. Probably syntax error.
+            printf("Error: ClassDecl parent is not program\n");
+        }
+
+        yyltype y;
+        Identifier *i = new Identifier(y, strdup(extends->typeName));
+        Decl* d = parent->CheckHash(i);
+        //d->Check(false);
+        if(d->type->IsEquivalentTo(Type::errorType) || dynamic_cast<ClassDecl*>(d) == nullptr){
+            printf("Extends check did not find class\n");
+            
+            /*Decl *temp = new Decl(id);
+            temp->type = Type::errorType;
+            return temp;*/
+        }
+        else{
+            printf("Extends check found class\n");
+            ClassDecl *cd = dynamic_cast<ClassDecl*>(d);
+            Decl *h = cd->CheckHash(id);
+            if(! h->type->IsEquivalentTo(Type::errorType)){
+                printf("Extends check found. Return\n");
+                return h;
+            }
+            
+        }
+
+    }
 
     //THEN HERE CHECK IMPLEMENTS
+    
 
+    // Return error did not find
     Decl *temp = new Decl(id);
     temp->type = Type::errorType;
     return temp;
@@ -111,7 +146,7 @@ void FnDecl::SetFunctionBody(Stmt *b) {
     (body=b)->SetParent(this);
 }
 
-bool FnDecl::Check() {
+bool FnDecl::Check(bool reportError) {
     // loop through formals
     
     for(int i = 0; i < formals->NumElements(); ++i){
@@ -131,7 +166,7 @@ bool FnDecl::Check() {
 
     }
     
-    body->Check(); // then go through body and ensure type correctness and such 
+    body->Check(true); // then go through body and ensure type correctness and such 
     return true;
 }
 

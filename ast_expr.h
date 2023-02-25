@@ -16,6 +16,7 @@
 #include "ast.h"
 #include "ast_stmt.h"
 #include "list.h"
+#include "ast_type.h"
 
 class NamedType; // for new
 class Type; // for NewArray
@@ -26,8 +27,7 @@ class Expr : public Stmt
   public:
     Expr(yyltype loc) : Stmt(loc) {}
     Expr() : Stmt() {}
-    virtual bool Check(){printf("Expr check\n");
-                return true;}
+    virtual bool Check(bool reportError);
     Type* type = NULL;
 };
 
@@ -46,6 +46,7 @@ class IntConstant : public Expr
   
   public:
     IntConstant(yyltype loc, int val);
+    bool Check(bool reportError){return true;}
 };
 
 class DoubleConstant : public Expr 
@@ -55,6 +56,7 @@ class DoubleConstant : public Expr
     
   public:
     DoubleConstant(yyltype loc, double val);
+    bool Check(bool reportError){return true;}
 };
 
 class BoolConstant : public Expr 
@@ -64,6 +66,7 @@ class BoolConstant : public Expr
     
   public:
     BoolConstant(yyltype loc, bool val);
+    bool Check(bool reportError){return true;}
 };
 
 class StringConstant : public Expr 
@@ -73,13 +76,16 @@ class StringConstant : public Expr
     
   public:
     StringConstant(yyltype loc, const char *val);
+    bool Check(bool reportError){return true;}
 };
 
 class NullConstant: public Expr 
 {
-
+  private:
+    double i_am_null;
   public: 
-    NullConstant(yyltype loc) : Expr(loc) {}
+    NullConstant(yyltype loc) : Expr(loc) {type = Type::nullType;}
+    bool Check(bool reportError){printf("NULL CHECK\n"); type = Type::nullType; return true;}
 };
 
 class Operator : public Node 
@@ -108,14 +114,14 @@ class ArithmeticExpr : public CompoundExpr
   public:
     ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
-    virtual bool Check();
+    virtual bool Check(bool reportError);
 };
 
 class RelationalExpr : public CompoundExpr 
 {
   public:
     RelationalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
-    bool Check();
+    bool Check(bool reportError);
 };
 
 class EqualityExpr : public CompoundExpr 
@@ -123,7 +129,7 @@ class EqualityExpr : public CompoundExpr
   public:
     EqualityExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "EqualityExpr"; }
-    bool Check();
+    bool Check(bool reportError);
 };
 
 class LogicalExpr : public CompoundExpr 
@@ -132,7 +138,7 @@ class LogicalExpr : public CompoundExpr
     LogicalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     LogicalExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
     const char *GetPrintNameForNode() { return "LogicalExpr"; }
-    bool Check();
+    bool Check(bool reportError);
 };
 
 class AssignExpr : public CompoundExpr 
@@ -140,7 +146,7 @@ class AssignExpr : public CompoundExpr
   public:
     AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "AssignExpr"; }
-    bool Check();
+    bool Check(bool reportError);
 };
 
 class LValue : public Expr 
@@ -157,7 +163,7 @@ class This : public Expr
 
   public:
     This(yyltype loc) : Expr(loc) {temp = 3;}
-    bool Check() override;
+    bool Check(bool reportError) override;
 };
 
 class ArrayAccess : public LValue 
@@ -167,7 +173,7 @@ class ArrayAccess : public LValue
     
   public:
     ArrayAccess(yyltype loc, Expr *base, Expr *subscript);
-    bool Check();
+    bool Check(bool reportError);
 };
 
 /* Note that field access is used both for qualified names
@@ -183,7 +189,7 @@ class FieldAccess : public LValue
     
   public:
     FieldAccess(Expr *base, Identifier *field); //ok to pass NULL base
-    bool Check();
+    bool Check(bool reportError);
 };
 
 /* Like field access, call is used both for qualified base.field()
@@ -196,12 +202,12 @@ class Call : public Expr
     Expr *base;	// will be NULL if no explicit base
     Identifier *field;
     List<Expr*> *actuals;
-    void validateFormals(Identifier *FnIdentifier, List<VarDecl*> *decl_formals, List<Expr*> *call_actuals);
-    void checkActuals();
+    void validateFormals(Identifier *FnIdentifier, List<VarDecl*> *decl_formals, List<Expr*> *call_actuals, bool reportError);
+    void checkActuals(bool reportError);
     
   public:
     Call(yyltype loc, Expr *base, Identifier *field, List<Expr*> *args);
-    bool Check();
+    bool Check(bool reportError);
 };
 
 class NewExpr : public Expr
@@ -211,6 +217,7 @@ class NewExpr : public Expr
     
   public:
     NewExpr(yyltype loc, NamedType *clsType);
+    bool Check(bool reportError);
 };
 
 class NewArrayExpr : public Expr
@@ -221,7 +228,7 @@ class NewArrayExpr : public Expr
     
   public:
     NewArrayExpr(yyltype loc, Expr *sizeExpr, Type *elemType);
-    bool Check();
+    bool Check(bool reportError);
 };
 
 class ReadIntegerExpr : public Expr

@@ -30,7 +30,7 @@ class Decl : public Node
   public:
     Type *type;
     Decl(Identifier *name);
-    virtual bool Check();
+    virtual bool Check(bool reportError);
     friend std::ostream& operator<<(std::ostream& out, Decl *d) { return out << d->id; }
     Identifier* getIdentifier() { return id; }
     virtual Decl *CheckHash(Identifier *i) {printf("ERROR: Decl CheckHash\n"); return nullptr;}
@@ -44,7 +44,7 @@ class VarDecl : public Decl
   public:
     //Type *type;
     VarDecl(Identifier *name, Type *type);
-    bool Check();
+    bool Check(bool reportError);
     Decl *CheckHash(Identifier *i);
 };
 
@@ -52,17 +52,20 @@ class ClassDecl : public Decl
 {
   protected:
     NamedType *extends;
-    List<NamedType*> *implements;
+    
   
   private:
     Hashtable<Decl*>* hash;
+    List<NamedType*> *implements;
 
   public:
     List<Decl*> *members;
     ClassDecl(Identifier *name, NamedType *extends, 
               List<NamedType*> *implements, List<Decl*> *members);
-    bool Check();
+    bool Check(bool reportError);
     Decl * CheckHash(Identifier *id);
+    NamedType * getExtends(){return extends;}
+    List<NamedType*>* getImplements() { return implements; }
 };
 
 class InterfaceDecl : public Decl 
@@ -87,9 +90,10 @@ class FnDecl : public Decl
   public:
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);
-    bool Check();
+    bool Check(bool reportError);
     Decl *CheckHash(Identifier *i);
     List<VarDecl*> *GetFormals(){ return formals;}
+    Type *GetReturnType(){ return returnType;}
 };
 
 #endif

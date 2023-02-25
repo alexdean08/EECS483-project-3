@@ -1633,7 +1633,7 @@ yyreduce:
                                       Program *program = new Program((yyvsp[0].declList));
                                       // if no errors, advance to next phase
                                       if (ReportError::NumErrors() == 0) 
-                                          program->Check();
+                                          program->Check(true);
                                     }
 #line 1639 "y.tab.c" /* yacc.c:1646  */
     break;

@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/mnt/c/Users/Alex Dean/Desktop/eecs483/pp3/dcc", //path to your programs exe and exe name
-            "args": ["<", "samples/bad4.decaf"],
+            "args": ["<", "samples/bad6.decaf"],
             "stopAtEntry": false,
             "cwd": "/mnt/c/Users/Alex Dean/Desktop/eecs483/pp3",
             "environment": [],

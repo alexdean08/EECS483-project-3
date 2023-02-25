@@ -33,7 +33,7 @@ class Program : public Node
   public:
      List<Decl*> *decls;
      Program(List<Decl*> *declList);
-     bool Check();
+     bool Check(bool reportError);
      bool containsIdent(const char* ident);
      Decl * CheckHash(Identifier *i);
 };
@@ -43,7 +43,7 @@ class Stmt : public Node
   public:
      Stmt() : Node() {}
      Stmt(yyltype loc) : Node(loc) {}
-     virtual bool Check();
+     virtual bool Check(bool reportError);
      virtual Decl *CheckHash(Identifier *i);
 };
 
@@ -60,7 +60,7 @@ class StmtBlock : public Stmt
     StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
     Decl *CheckHash(Identifier *i);
     
-    bool Check();
+    virtual bool Check(bool reportError);
 };
 
   
@@ -72,16 +72,18 @@ class ConditionalStmt : public Stmt
   
   public:
     ConditionalStmt(Expr *testExpr, Stmt *body);
-    virtual bool Check();
+    virtual bool Check(bool reportError);
     
 };
 
 class LoopStmt : public ConditionalStmt 
 {
+  private:
+    bool loopstmt;
   public:
     LoopStmt(Expr *testExpr, Stmt *body)
             : ConditionalStmt(testExpr, body) {}
-    //virtual bool Check();
+    //virtual bool Check(bool reportError);
 };
 
 class ForStmt : public LoopStmt 
@@ -91,13 +93,14 @@ class ForStmt : public LoopStmt
   
   public:
     ForStmt(Expr *init, Expr *test, Expr *step, Stmt *body);
+    bool Check(bool reportError);
 };
 
 class WhileStmt : public LoopStmt 
 {
   public:
     WhileStmt(Expr *test, Stmt *body) : LoopStmt(test, body) {}
-    bool Check();
+    bool Check(bool reportError);
     Decl *CheckHash(Identifier *i);
 };
 
@@ -108,14 +111,17 @@ class IfStmt : public ConditionalStmt
   
   public:
     IfStmt(Expr *test, Stmt *thenBody, Stmt *elseBody);
-    bool Check();
+    bool Check(bool reportError);
     Decl *CheckHash(Identifier *i);
 };
 
 class BreakStmt : public Stmt 
 {
+  protected:
+    double breaks;
   public:
-    BreakStmt(yyltype loc) : Stmt(loc) {}
+    BreakStmt(yyltype loc);
+    bool Check(bool reportError) override;
 };
 
 class ReturnStmt : public Stmt  
@@ -125,6 +131,7 @@ class ReturnStmt : public Stmt
   
   public:
     ReturnStmt(yyltype loc, Expr *expr);
+    bool Check(bool reportError);
 };
 
 class PrintStmt : public Stmt
@@ -134,7 +141,7 @@ class PrintStmt : public Stmt
     
   public:
     PrintStmt(List<Expr*> *arguments);
-    bool Check();
+    bool Check(bool reportError);
 };
 
 

@@ -30,7 +30,7 @@ class Type : public Node
 
     Type(yyltype loc) : Node(loc) {}
     Type(const char *str);
-    virtual bool Check() {return true;}
+    virtual bool Check(bool reportError) {return true;}
     Decl * CheckHash(Identifier *i) {return this->GetParent()->CheckHash(i);}
     
     virtual void PrintToStream(std::ostream& out) { out << typeName; }
@@ -49,8 +49,9 @@ class NamedType : public Type
     
   public:
     NamedType(Identifier *i);
-    bool Check();
+    bool Check(bool reportError);
     void PrintToStream(std::ostream& out) { out << id; }
+    bool isType(NamedType* expected);
 };
 
 class ArrayType : public Type 

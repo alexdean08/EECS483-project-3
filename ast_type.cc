@@ -5,6 +5,7 @@
 #include "ast_type.h"
 #include "ast_decl.h"
 #include <string.h>
+#include "ast_stmt.h"
  
 /* Class constants
  * ---------------
@@ -36,7 +37,7 @@ NamedType::NamedType(Identifier *i) : Type(*i->GetLocation()) {
     typeName = strdup(i->name);
 } 
 
-bool NamedType::Check() {
+bool NamedType::Check(bool reportError) {
     printf("NAMED CHECK\n");
     Type * CheckedHash = this->GetParent()->CheckHash(id)->type;
     //printf("\n\n%c\n\n\n\n", *(CheckedHash->typeName));
@@ -48,6 +49,47 @@ bool NamedType::Check() {
         return false;
     }
     return true;
+}
+
+bool NamedType::isType(NamedType* expected) {
+    if(this->IsEquivalentTo(expected))
+        return true;
+    
+    Node* parent = this->GetParent();
+    while(dynamic_cast<Program*>(parent) == nullptr){
+        parent = parent->GetParent();
+    }
+    Program* p = dynamic_cast<Program*>(parent);
+    Decl* d = p->CheckHash(this->id);
+    if(dynamic_cast<ClassDecl*>(d) == nullptr){
+        //error not a class
+        return false;
+    }
+
+    ClassDecl *class_decl = dynamic_cast<ClassDecl*>(d);
+    for(int i = 0; i < class_decl->getImplements()->NumElements(); i++){
+        if (class_decl->getImplements()->Nth(i)->isType(expected)) {
+            return true;
+        }
+    }
+
+    if (class_decl->getExtends() == NULL) {
+        return false;
+    }
+
+    return class_decl->getExtends()->isType(expected);
+
+
+    /*ClassDecl *class_decl = dynamic_cast<ClassDecl*>(d);
+    while(class_decl->getExtends() != NULL){
+        if(class_decl->getExtends()->IsEquivalentTo(expected)){
+            return true;
+        }
+        else{
+            
+        }
+    }*/
+
 }
 
 

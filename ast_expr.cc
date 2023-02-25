@@ -11,10 +11,13 @@
 #include <sstream>
 
 
-/*void Expr::Check(){
-    printf("5\n");
-    return
-}*/
+bool Expr::Check(bool reportError){
+    printf("Expr check\n");
+    if(dynamic_cast<NullConstant*>(this) != nullptr){
+      type = Type::nullType;
+    }
+    return true;
+}
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
     type = Type::intType;
@@ -63,21 +66,24 @@ ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
     (subscript=s)->SetParent(this);
 }
 
-bool ArrayAccess::Check(){
+bool ArrayAccess::Check(bool reportError){
     printf("array access check\n");
-    base->Check();
+    base->Check(reportError);
     
     if(dynamic_cast<ArrayType*>(base->type) == nullptr){
-        ReportError::BracketsOnNonArray(base);
+        if(reportError)
+            ReportError::BracketsOnNonArray(base);
         type = Type::errorType;
     }
     else{
         type = dynamic_cast<ArrayType*>(base->type)->elemType;
     }
 
-    subscript->Check();
-    if(!subscript->type->IsEquivalentTo(Type::intType) && !subscript->type->IsEquivalentTo(Type::boolType))
-        ReportError::SubscriptNotInteger(subscript);
+    subscript->Check(reportError);
+    if(!subscript->type->IsEquivalentTo(Type::intType) && !subscript->type->IsEquivalentTo(Type::boolType)){
+        if(reportError)
+            ReportError::SubscriptNotInteger(subscript);
+    }
     return true;
     //if(base->type != Type::a)
 }
@@ -90,14 +96,15 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
     (field=f)->SetParent(this);
 }
 
-bool FieldAccess::Check() {
+bool FieldAccess::Check(bool reportError) {
     //printf(typeid(this->GetParent()).name());
     
     if(base==NULL){
         printf("field access \n");
         Type *t = this->GetParent()->CheckHash(field)->type;
         if(t == Type::errorType) {
-            ReportError::IdentifierNotDeclared(field, LookingForVariable);
+            if(reportError)
+                ReportError::IdentifierNotDeclared(field, LookingForVariable);
             
             //std::cout << "type not found\n";
         }
@@ -108,7 +115,7 @@ bool FieldAccess::Check() {
         return true;
     }
     else{
-        base->Check();
+        base->Check(reportError);
         
         printf("class field access\n");
         bool found = false;
@@ -142,7 +149,8 @@ bool FieldAccess::Check() {
                 Decl *temp_cl = dynamic_cast<Program*>(parent)->CheckHash(temp_id);
                 if(dynamic_cast<ClassDecl*>(temp_cl) == nullptr){
                     // ERROR did not find class
-                    ReportError::FieldNotFoundInBase(field, base->type);
+                    if(reportError)
+                        ReportError::FieldNotFoundInBase(field, base->type);
                     type=Type::errorType;
                     return false;
                 }
@@ -154,7 +162,8 @@ bool FieldAccess::Check() {
                 //printf("DONE CLASS CHECKHASH\n");
                 if(dynamic_cast<VarDecl*>(temp_var_decl) == nullptr){
                     //ERROR found class but did not find variable
-                    ReportError::FieldNotFoundInBase(field, base->type);
+                    if(reportError)
+                        ReportError::FieldNotFoundInBase(field, base->type);
                     type=Type::errorType;
                     return false;
                 }
@@ -168,7 +177,8 @@ bool FieldAccess::Check() {
                 }
                 
                 //ERROR found variable but cannot access it
-                ReportError::InaccessibleField(field, base->type);
+                if(reportError)
+                    ReportError::InaccessibleField(field, base->type);
                 type=Type::errorType;
                 return false;
             }
@@ -193,24 +203,25 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)  {
     (actuals=a)->SetParentAll(this);
 }
 
-bool Call::Check() {
+bool Call::Check(bool reportError) {
 
     //TODO: test a function call that can't be accessed AND has incorrect formals. Is this really possible?
     if(base==NULL){
         Decl *d = this->GetParent()->CheckHash(field);
         if(dynamic_cast<FnDecl*>(d) != nullptr){
             FnDecl *fn = dynamic_cast<FnDecl*>(d);
-            validateFormals(field, fn->GetFormals(), actuals);
-            type = fn->type;
+            validateFormals(field, fn->GetFormals(), actuals, reportError);
+            type = fn->GetReturnType();
             return true;
             
         }
-        ReportError::IdentifierNotDeclared(field, LookingForFunction);
-        checkActuals();
+        if(reportError)
+            ReportError::IdentifierNotDeclared(field, LookingForFunction);
+        checkActuals(reportError);
         return false;
     }
     else{
-        base->Check();
+        base->Check(reportError);
         
         printf("class field access\n");
         bool found = false;
@@ -240,7 +251,8 @@ bool Call::Check() {
 
                 if(dynamic_cast<ClassDecl*>(temp_cl) == nullptr){
                     // ERROR did not find class
-                    ReportError::FieldNotFoundInBase(field, base->type);
+                    if(reportError)
+                        ReportError::FieldNotFoundInBase(field, base->type);
                     type=Type::errorType;
                     return false;
                 }
@@ -251,17 +263,18 @@ bool Call::Check() {
                 Decl *temp_fn_decl = cl->CheckHash(field);
                 if(dynamic_cast<FnDecl*>(temp_fn_decl) == nullptr){
                     //ERROR found class but did not find function
-                    ReportError::FieldNotFoundInBase(field, base->type);
+                    if(reportError)
+                        ReportError::FieldNotFoundInBase(field, base->type);
                     type=Type::errorType;
-                    checkActuals();
+                    checkActuals(reportError);
                     return false;
                 }
                 
                 //Found function
 
                 FnDecl *fn_decl = dynamic_cast<FnDecl*>(temp_fn_decl);
-                validateFormals(field, fn_decl->GetFormals(), actuals);
-                type = fn_decl->type;
+                validateFormals(field, fn_decl->GetFormals(), actuals, reportError);
+                type = fn_decl->GetReturnType();
                 return true;
     
                 
@@ -274,12 +287,13 @@ bool Call::Check() {
     
 }
 
-void Call::validateFormals(Identifier *FnIdentifier, List<VarDecl*> *decl_formals, List<Expr*> *call_actuals){
+void Call::validateFormals(Identifier *FnIdentifier, List<VarDecl*> *decl_formals, List<Expr*> *call_actuals, bool reportError){
     if(decl_formals->NumElements() != call_actuals->NumElements()){
-        ReportError::NumArgsMismatch(FnIdentifier, decl_formals->NumElements(), call_actuals->NumElements());
+        if(reportError)
+            ReportError::NumArgsMismatch(FnIdentifier, decl_formals->NumElements(), call_actuals->NumElements());
     }
 
-    checkActuals();
+    checkActuals(reportError);
 
     int min_elements = decl_formals->NumElements();
     if(call_actuals->NumElements() < min_elements)
@@ -289,14 +303,15 @@ void Call::validateFormals(Identifier *FnIdentifier, List<VarDecl*> *decl_formal
         call_actuals->Nth(i)->type->IsEquivalentTo(Type::errorType);
         
         if( !( decl_formals->Nth(i)->type->IsEquivalentTo(call_actuals->Nth(i)->type) || decl_formals->Nth(i)->type->IsEquivalentTo(Type::errorType) || call_actuals->Nth(i)->type->IsEquivalentTo(Type::errorType)) ){
-            ReportError::ArgMismatch(call_actuals->Nth(i), i+1, call_actuals->Nth(i)->type, decl_formals->Nth(i)->type);
+            if(reportError)
+                ReportError::ArgMismatch(call_actuals->Nth(i), i+1, call_actuals->Nth(i)->type, decl_formals->Nth(i)->type);
         }
     }
 }
 
-void Call::checkActuals(){
+void Call::checkActuals(bool reportError){
     for(int i = 0; i < actuals->NumElements(); ++i){
-        actuals->Nth(i)->Check();
+        actuals->Nth(i)->Check(reportError);
     }
 }
  
@@ -306,6 +321,12 @@ NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) {
   (cType=c)->SetParent(this);
 }
 
+bool NewExpr::Check(bool reportError){
+    cType->Check(reportError);
+    type = cType;
+    return true;
+}
+
 
 NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
     Assert(sz != NULL && et != NULL);
@@ -313,14 +334,15 @@ NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
     (elemType=et)->SetParent(this);
 }
 
-bool NewArrayExpr::Check() {
+bool NewArrayExpr::Check(bool reportError) {
     printf("new array expression check\n");
     //printf("sdfds\n");
-    size->Check();
+    size->Check(reportError);
     if(!size->type->IsEquivalentTo(Type::intType) && !size->type->IsEquivalentTo(Type::errorType)) {
-        ReportError::NewArraySizeNotInteger(size);
+        if(reportError)
+            ReportError::NewArraySizeNotInteger(size);
     }
-    elemType->Check();
+    elemType->Check(reportError);
     type=new ArrayType(*location, elemType);
     return true;
 }
@@ -329,96 +351,153 @@ bool bothType(Expr* left, Expr* right, Type* type) {
     return left->type->IsEquivalentTo(type) && right->type->IsEquivalentTo(type);
 }
 
-bool ArithmeticExpr::Check(){
+bool ArithmeticExpr::Check(bool reportError){
     printf("arithmetic expression check\n");
 
-    left->Check();
-    right->Check();
+    left->Check(reportError);
+    right->Check(false);
     
     if(left->type->IsEquivalentTo(Type::errorType) || right->type->IsEquivalentTo(Type::errorType)) {
         type = Type::errorType;
     }
     else if(!bothType(left, right, Type::intType) && !bothType(left, right, Type::doubleType)) {
-        ReportError::IncompatibleOperands(op, left->type, right->type);
+        if(reportError)
+            ReportError::IncompatibleOperands(op, left->type, right->type);
         type = Type::errorType;
     }
     else{
         type = left->type;
     }
+    right->Check(reportError);
      
     return true;
 }
 
-bool RelationalExpr::Check() {
+bool RelationalExpr::Check(bool reportError) {
     printf("relational expression check\n");
     
-    left->Check();
-    right->Check();
+    left->Check(reportError);
+    right->Check(false);
 
     if(left->type->IsEquivalentTo(Type::errorType) || right->type->IsEquivalentTo(Type::errorType)) {
-        type = Type::errorType; //change to boolType???
+        type = Type::boolType; //change to boolType???
     }
     else if(!bothType(left, right, Type::intType) && !bothType(left, right, Type::doubleType)) {
-        ReportError::IncompatibleOperands(op, left->type, right->type);
+        if(reportError)
+            ReportError::IncompatibleOperands(op, left->type, right->type);
         type = Type::boolType; //changed from errorType (correct????)
     }
     else{
         type = Type::boolType;
     }
+    right->Check(reportError);
     return true;
 }
 
-bool EqualityExpr::Check() {
+bool EqualityExpr::Check(bool reportError) {
     printf("equality expression check\n");
     
-    left->Check();
-    right->Check();
+    left->Check(reportError);
+    right->Check(false);
     if(left->type->IsEquivalentTo(Type::errorType) || right->type->IsEquivalentTo(Type::errorType)) {
-        type = Type::errorType;
+        type = Type::boolType;
     }
     else if(!left->type->IsEquivalentTo(right->type)) {
-        ReportError::IncompatibleOperands(op, left->type, right->type);
+        NamedType* leftNamed = dynamic_cast<NamedType*>(left->type);
+        NamedType* rightNamed = dynamic_cast<NamedType*>(right->type);
+
+        if ((leftNamed != nullptr && right->type->IsEquivalentTo(Type::nullType)) || (rightNamed != nullptr && left->type->IsEquivalentTo(Type::nullType))) {
+            // Do nothing. No error
+        }
+        else if(leftNamed != nullptr && rightNamed != nullptr){
+            
+            if(! (leftNamed->isType(rightNamed) || rightNamed->isType(leftNamed)) ){
+                if(reportError)
+                    ReportError::IncompatibleOperands(op, left->type, right->type);
+            }
+        }
+        else{
+            if(reportError)
+                ReportError::IncompatibleOperands(op, left->type, right->type);
+        }
         type = Type::boolType;
     }
     else{
         type = Type::boolType;
     }
+    right->Check(reportError);
     return true;
 }
 
 
-bool LogicalExpr::Check() {
+bool LogicalExpr::Check(bool reportError) {
     printf("logical expression check\n");
-    left->Check();
-    right->Check();
-    if(left->type->IsEquivalentTo(Type::errorType) || right->type->IsEquivalentTo(Type::errorType)) {
-        type = Type::errorType;
-    }
-    else if(!bothType(left, right, Type::boolType)) {
-        ReportError::IncompatibleOperands(op, left->type, right->type);
+    if(left == NULL){
+        right->Check(false);
+        if(! (right->type->IsEquivalentTo(Type::boolType) || right->type->IsEquivalentTo(Type::errorType))){
+            if(reportError)
+                ReportError::IncompatibleOperand(op, right->type);
+        }
         type = Type::boolType;
+        right->Check(reportError);
+        return true;
     }
-    else {
-        type = Type::boolType;
+    else{
+        left->Check(reportError);
+        right->Check(false);
+        if(left->type->IsEquivalentTo(Type::errorType) || right->type->IsEquivalentTo(Type::errorType)) {
+            type = Type::boolType;
+        }
+        else if(!bothType(left, right, Type::boolType)) {
+            if(reportError)
+                ReportError::IncompatibleOperands(op, left->type, right->type);
+            type = Type::boolType;
+        }
+        else {
+            type = Type::boolType;
+        }
+        right->Check(reportError);
+        return true;
     }
-    return true;
 }
 
-bool AssignExpr::Check() {
+bool AssignExpr::Check(bool reportError) {
     
     printf("assign expression check\n");
 
-    left->Check();
+    left->Check(reportError);
     
-    right->Check();
-    
+    right->Check(false);
+    if(dynamic_cast<NullConstant*>(right) != nullptr) 
+        dynamic_cast<NullConstant*>(right)->Check(false);
+    printf("BEFORE\n");
+    right->type->IsEquivalentTo(Type::nullType);
+    printf("SDFDS\n");
 
     if(!left->type->IsEquivalentTo(right->type) && !right->type->IsEquivalentTo(Type::errorType) && !left->type->IsEquivalentTo(Type::errorType)) {
         
-        ReportError::IncompatibleOperands(op, left->type, right->type);
+        NamedType* leftNamed = dynamic_cast<NamedType*>(left->type);
+        NamedType* rightNamed = dynamic_cast<NamedType*>(right->type);
+        
+
+        if (leftNamed != nullptr && right->type->IsEquivalentTo(Type::nullType)) {
+            // Do nothing. No error
+        }
+        else if(leftNamed != nullptr && rightNamed != nullptr){
+            
+            if(! rightNamed->isType(leftNamed) ){
+                if(reportError)
+                    ReportError::IncompatibleOperands(op, left->type, right->type);
+            }
+        }
+        else{
+        
+            if(reportError)
+                ReportError::IncompatibleOperands(op, left->type, right->type);
+        }
     }
 
-    
+    right->Check(reportError);
 
     type = left->type;
     return true;
@@ -426,7 +505,7 @@ bool AssignExpr::Check() {
 
 
 
-bool This::Check(){
+bool This::Check(bool reportError){
     std::cerr << "This Check()\n" << std::endl;
     Node* parent = this->GetParent();
     while(true) {
@@ -437,7 +516,8 @@ bool This::Check(){
         }
         else if(dynamic_cast<Program*>(parent) != nullptr) {
             //error
-            ReportError::ThisOutsideClassScope(this);
+            if(reportError)
+                ReportError::ThisOutsideClassScope(this);
             type = Type::errorType;
             return false;
         }
