@@ -133,6 +133,8 @@ bool StmtBlock::Check(bool reportError) {
 
 Decl *StmtBlock::CheckHash(Identifier *i) {
     
+    printf("stmt block check hash\n");
+
     for(int in = 0; in < decls->NumElements(); ++in){
 
         if(strcmp(decls->Nth(in)->getIdentifier()->getName(), (i)->getName() ) == 0) {
@@ -294,7 +296,12 @@ PrintStmt::PrintStmt(List<Expr*> *a) {
 
 bool PrintStmt::Check(bool reportError){
     for(int i = 0; i < args->NumElements(); ++i) {
-        args->Nth(i)->Check(true);
+        args->Nth(i)->Check(reportError);
+        if(! (args->Nth(i)->type->IsEquivalentTo(Type::stringType) || args->Nth(i)->type->IsEquivalentTo(Type::boolType) || args->Nth(i)->type->IsEquivalentTo(Type::intType) || args->Nth(i)->type->IsEquivalentTo(Type::errorType)) ){
+            if(reportError){
+                ReportError::PrintArgMismatch(args->Nth(i), i+1, args->Nth(i)->type);
+            }
+        }
     }
     return true;
 }

@@ -101,12 +101,23 @@ bool FieldAccess::Check(bool reportError) {
     
     if(base==NULL){
         printf("field access \n");
-        Type *t = this->GetParent()->CheckHash(field)->type;
-        if(t == Type::errorType) {
+        Type *t;
+        Decl* d = this->GetParent()->CheckHash(field);
+        if(dynamic_cast<FnDecl*>(d) != nullptr){
+            
             if(reportError)
                 ReportError::IdentifierNotDeclared(field, LookingForVariable);
-            
-            //std::cout << "type not found\n";
+            t = Type::errorType;
+        }
+        else{
+            t = d->type;
+
+            if(t == Type::errorType) {
+                if(reportError)
+                    ReportError::IdentifierNotDeclared(field, LookingForVariable);
+
+                //std::cout << "type not found\n";
+            }
         }
             
         
