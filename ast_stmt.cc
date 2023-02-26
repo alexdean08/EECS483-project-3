@@ -258,6 +258,10 @@ bool ReturnStmt::Check(bool reportError){
     }
     FnDecl *fn = dynamic_cast<FnDecl*>(parent);
     Type *rt = fn->GetReturnType();
+
+    if(rt->IsEquivalentTo(Type::voidType) && expr->type == NULL){
+        return true;
+    }
     
     if(!rt->IsEquivalentTo(expr->type) && !expr->type->IsEquivalentTo(Type::errorType) ){
         NamedType* exprNamed = dynamic_cast<NamedType*>(expr->type);
