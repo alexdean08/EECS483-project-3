@@ -4,7 +4,7 @@ interface Printable {
 }
 
 class Number implements Printable {
-    void ToString(string s) {}
+    void ToString(string s) {}z
  }
 
 void main()

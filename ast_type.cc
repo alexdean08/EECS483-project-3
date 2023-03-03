@@ -47,7 +47,10 @@ bool NamedType::Check(bool reportError) {
 
     if (d == NULL) {
         // Could not find declaration
+        printf("NOT DECLARIED\n");
+        
         if (reportError) {
+            
             ReportError::IdentifierNotDeclared(id, LookingForType);
         }
 

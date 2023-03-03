@@ -31,8 +31,8 @@ class Type : public Node
     Type(yyltype loc) : Node(loc) {}
     Type(const char *str);
     virtual bool Check(bool reportError) {printf("Type Check\n"); return true;}
-    Decl * CheckHash(Identifier *i) {
-      printf("Type CheckHash\n");
+    virtual Decl * CheckHash(Identifier *i) {
+      printf("Type CheckHash %s\n", typeName);
       printf("%d\n", this->GetParent() == NULL);
       return this->GetParent()->CheckHash(i);
     }
@@ -56,6 +56,9 @@ class NamedType : public Type
     bool Check(bool reportError);
     void PrintToStream(std::ostream& out) { out << id; }
     bool isType(NamedType* expected);
+    Identifier *getIdentifier(){return id;}
+    Decl * CheckHash(Identifier *i) { printf("NAMEDTYPE CHECK HASH\n"); return this->GetParent()->CheckHash(i);}
+
 };
 
 class ArrayType : public Type 

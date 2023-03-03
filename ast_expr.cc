@@ -342,8 +342,13 @@ NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) {
 
 bool NewExpr::Check(bool reportError){
     printf("NewExpr check\n");
-    cType->Check(reportError);
-    type = cType;
+    bool valid = cType->Check(reportError);
+    if(!valid){
+        type = Type::errorType;
+    }
+    else{
+        type = cType;
+    }
     return true;
 }
 
@@ -355,6 +360,7 @@ NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
 }
 
 bool NewArrayExpr::Check(bool reportError) {
+    type=Type::errorType;
     printf("new array expression check\n");
     //printf("sdfds\n");
     size->Check(reportError);
@@ -364,15 +370,28 @@ bool NewArrayExpr::Check(bool reportError) {
             ReportError::NewArraySizeNotInteger(size);
     }
     printf("new array size is correct type\n");
-    elemType->Check(reportError);
-    type=new ArrayType(*location, elemType);
+    bool valid = elemType->Check(reportError);
+    if(!valid){
+        type=Type::errorType;    
+    }
+    else{
+        if(dynamic_cast<NamedType*>(elemType) != nullptr){
+            NamedType* temp_type = new NamedType(dynamic_cast<NamedType*>(elemType)->getIdentifier());
+            type=new ArrayType(*location, temp_type);
+        }
+        else{
+            type=new ArrayType(*location, elemType);
+        }
+                
+    }
+    
     return true;
 }
 
 Decl * NewArrayExpr::CheckHash(Identifier *i){
     printf("NewArrayExpr CHECK HASH\n");
 
-    return NULL;
+    return this->GetParent()->CheckHash(i);
 }
 
 bool bothType(Expr* left, Expr* right, Type* type) {

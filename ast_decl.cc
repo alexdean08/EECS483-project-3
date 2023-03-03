@@ -150,6 +150,10 @@ void FnDecl::SetFunctionBody(Stmt *b) {
 }
 
 bool FnDecl::Check(bool reportError) {
+
+    //check to see if inheriting function from somewhere
+
+
     // loop through formals
     
     for(int i = 0; i < formals->NumElements(); ++i){
