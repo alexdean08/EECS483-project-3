@@ -38,16 +38,33 @@ NamedType::NamedType(Identifier *i) : Type(*i->GetLocation()) {
 } 
 
 bool NamedType::Check(bool reportError) {
-    printf("NAMED CHECK\n");
-    Type * CheckedHash = this->GetParent()->CheckHash(id)->type;
-    //printf("\n\n%c\n\n\n\n", *(CheckedHash->typeName));
-    if(CheckedHash == Type::nullType || CheckedHash == Type::intType || CheckedHash == Type::stringType || CheckedHash == Type::boolType
-         || CheckedHash == Type::boolType || CheckedHash == Type::doubleType || CheckedHash == Type::errorType) {
 
-        ReportError::IdentifierNotDeclared(id, LookingForType);
-        
+    printf("NAMED CHECK\n");
+
+    Decl* d = this->GetParent()->CheckHash(id);
+
+    printf("NAMED CHECK 2\n");
+
+    if (d == NULL) {
+        // Could not find declaration
+        if (reportError) {
+            ReportError::IdentifierNotDeclared(id, LookingForType);
+        }
+
         return false;
     }
+
+    // Type * CheckedHash = d->type;
+    // //printf("\n\n%c\n\n\n\n", *(CheckedHash->typeName));
+    // if(CheckedHash == Type::nullType || CheckedHash == Type::intType || CheckedHash == Type::stringType || CheckedHash == Type::boolType
+    //      || CheckedHash == Type::boolType || CheckedHash == Type::doubleType || CheckedHash == Type::errorType) {
+
+    //     if (reportError) {
+    //         ReportError::IdentifierNotDeclared(id, LookingForType);
+    //     }
+        
+    //     return false;
+    // }
     return true;
 }
 
@@ -99,6 +116,12 @@ ArrayType::ArrayType(yyltype loc, Type *et) : Type(loc) {
 
     typeName = strdup(et->typeName);
     strcat(typeName, "[]");
+}
+
+bool ArrayType::Check(bool reportError) {
+    printf("ArrayType check\n");
+    elemType->Check(reportError);
+    return true;
 }
 
 

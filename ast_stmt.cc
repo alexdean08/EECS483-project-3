@@ -55,9 +55,10 @@ Decl * Program::CheckHash(Identifier *i){
         }
     }
     //printf("NULL VAL \n");
-    Decl *temp = new Decl(i);
-    temp->type = Type::errorType;
-    return temp;
+    // Decl *temp = new Decl(i);
+    // temp->type = Type::errorType;
+    // return temp;
+    return NULL;
 }
 
 bool Stmt::Check(bool reportError) {
@@ -84,6 +85,7 @@ bool Stmt::Check(bool reportError) {
 }
 
 Decl * Stmt::CheckHash(Identifier *i){
+    printf("Stmt CheckHash\n");
     //printf("running CheckHash in Stmt\n");
     return this->GetParent()->CheckHash(i);
 }
@@ -216,6 +218,7 @@ bool IfStmt::Check(bool reportError) {
 
 
 Decl *IfStmt::CheckHash(Identifier *i) {
+    printf("IfStmt CheckHash\n");
     return this->GetParent()->CheckHash(i);
 }
 
@@ -240,7 +243,7 @@ bool WhileStmt::Check(bool reportError) {
 
 
 Decl *WhileStmt::CheckHash(Identifier *i) {
-    
+    printf("WhileStmt CheckHash\n");
     return this->GetParent()->CheckHash(i);
 }
 

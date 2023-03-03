@@ -110,14 +110,22 @@ bool FieldAccess::Check(bool reportError) {
             t = Type::errorType;
         }
         else{
+            if(d == NULL) {
+                ReportError::IdentifierNotDeclared(field, LookingForVariable);
+                type = Type::errorType;
+                return false;
+            }
+            
             t = d->type;
 
-            if(t == Type::errorType) {
-                if(reportError)
-                    ReportError::IdentifierNotDeclared(field, LookingForVariable);
+            // if(t == Type::errorType) {
+            //     if(reportError) {
+            //         ReportError::IdentifierNotDeclared(field, LookingForVariable);
+            //     }
+                    
 
-                //std::cout << "type not found\n";
-            }
+            //     //std::cout << "type not found\n";
+            // }
         }
             
         
@@ -333,6 +341,7 @@ NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) {
 }
 
 bool NewExpr::Check(bool reportError){
+    printf("NewExpr check\n");
     cType->Check(reportError);
     type = cType;
     return true;
@@ -349,13 +358,21 @@ bool NewArrayExpr::Check(bool reportError) {
     printf("new array expression check\n");
     //printf("sdfds\n");
     size->Check(reportError);
+    printf("new array size check done\n");
     if(!size->type->IsEquivalentTo(Type::intType) && !size->type->IsEquivalentTo(Type::errorType)) {
         if(reportError)
             ReportError::NewArraySizeNotInteger(size);
     }
+    printf("new array size is correct type\n");
     elemType->Check(reportError);
     type=new ArrayType(*location, elemType);
     return true;
+}
+
+Decl * NewArrayExpr::CheckHash(Identifier *i){
+    printf("NewArrayExpr CHECK HASH\n");
+
+    return NULL;
 }
 
 bool bothType(Expr* left, Expr* right, Type* type) {
@@ -478,6 +495,7 @@ bool AssignExpr::Check(bool reportError) {
 
     left->Check(reportError);
     
+    printf("right assign check report error false\n");
     right->Check(false);
     if(dynamic_cast<NullConstant*>(right) != nullptr) 
         dynamic_cast<NullConstant*>(right)->Check(false);
@@ -508,6 +526,7 @@ bool AssignExpr::Check(bool reportError) {
         }
     }
 
+    printf("right assign check report error true\n");
     right->Check(reportError);
 
     type = left->type;

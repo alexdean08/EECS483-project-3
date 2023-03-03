@@ -30,8 +30,12 @@ class Type : public Node
 
     Type(yyltype loc) : Node(loc) {}
     Type(const char *str);
-    virtual bool Check(bool reportError) {return true;}
-    Decl * CheckHash(Identifier *i) {return this->GetParent()->CheckHash(i);}
+    virtual bool Check(bool reportError) {printf("Type Check\n"); return true;}
+    Decl * CheckHash(Identifier *i) {
+      printf("Type CheckHash\n");
+      printf("%d\n", this->GetParent() == NULL);
+      return this->GetParent()->CheckHash(i);
+    }
     
     virtual void PrintToStream(std::ostream& out) { out << typeName; }
     friend std::ostream& operator<<(std::ostream& out, Type *t) { t->PrintToStream(out); return out; }
@@ -62,7 +66,7 @@ class ArrayType : public Type
   public:
     Type *elemType;
     ArrayType(yyltype loc, Type *elemType);
-    
+    bool Check(bool reportError);
     void PrintToStream(std::ostream& out) { out << elemType << "[]"; }
 };
 

@@ -1,9 +1,9 @@
-class Printable {
-   string ToString(){}
-   int NumChars(){}
+interface Printable {
+   string ToString();
+   int NumChars();
 }
 
-class Number extends Printable {
+class Number implements Printable {
     void ToString(string s) {}
  }
 
@@ -12,5 +12,4 @@ void main()
      Number n;
      Printable p;
      n = p;
-     p = n;
 }

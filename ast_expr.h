@@ -228,6 +228,7 @@ class NewArrayExpr : public Expr
     
   public:
     NewArrayExpr(yyltype loc, Expr *sizeExpr, Type *elemType);
+    Decl * CheckHash(Identifier *i);
     bool Check(bool reportError);
 };
 

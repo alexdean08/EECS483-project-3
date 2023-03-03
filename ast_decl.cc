@@ -26,6 +26,7 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
 }
 
 bool VarDecl::Check(bool reportError){
+    printf("VarDecl check\n");
     if(type->Check(true)){
         return true;
     }
@@ -36,6 +37,7 @@ bool VarDecl::Check(bool reportError){
 }
 
 Decl *VarDecl::CheckHash(Identifier *i) {
+    printf("VarDecl CheckHash\n");
     return this->GetParent()->CheckHash(i);
 }
 
@@ -123,9 +125,10 @@ Decl * ClassDecl::CheckHash(Identifier *id){
     
 
     // Return error did not find
-    Decl *temp = new Decl(id);
-    temp->type = Type::errorType;
-    return temp;
+    // Decl *temp = new Decl(id);
+    // temp->type = Type::errorType;
+    // return temp;
+    return NULL;
 }
 
 InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
@@ -171,6 +174,7 @@ bool FnDecl::Check(bool reportError) {
 }
 
 Decl *FnDecl::CheckHash(Identifier *i) {
+    printf("FnDecl CheckHash\n");
     for(int in = 0; in < formals->NumElements(); ++in){
         if(strcmp(formals->Nth(in)->getIdentifier()->getName(), (i)->getName() ) == 0) {
             
