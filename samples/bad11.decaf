@@ -4,7 +4,7 @@ interface Printable {
 }
 
 class Number implements Printable {
-    void ToString(string s) {}z
+    void ToString(string s) {}
  }
 
 void main()
@@ -13,3 +13,90 @@ void main()
      Printable p;
      n = p;
 }
+
+//
+// My own tests below
+//
+
+/*
+
+interface A {
+   string func1();
+   double func2(int b);
+}
+
+interface B {
+   string func1(); //diff return value
+   double func2(); //diff paramaters
+}
+
+interface C{
+   string func3();
+}
+
+class Class1 implements A, B {
+   int func1(){}
+   string func1(){}
+   double func2(int b){}
+   double func2(){}
+
+   double func3(){}
+
+   double func4(){}
+
+   int a;
+}
+
+class Class2 extends Class1 implements C{
+   double func3(){} // doesn't view this as an issue as far as C goes. Doesn't say "Method 'func3' must match inherited type signature"
+   //string func3(){} // This does have the error mentioned above
+   
+   int func4(){}
+
+   int func5(){}
+
+   int y;
+
+   G func7(){}
+   int func8(int a, G g){}
+}
+
+
+
+class Class3 extends Class2 implements D{
+   G func4(){} //gotta match all the way up otherwise error
+   int func5(G g){}
+   //double func6(){}
+   
+   int y(){}
+
+   int func7(){}
+   int func8(int b, G g, H h){} //doesn't need same identifier, only same type
+
+   int func6(){}
+   int func6(){}
+   
+}
+
+interface D{
+   int func6();
+}
+
+int main2(){
+   Class3 c;
+   int a;
+   int b;
+
+   K k;
+
+   a = c.func4(); //saying that this should be a double
+   b = c.func6(); //doesn't check interface!!!
+
+   
+}
+
+void func(K k){}
+*/
+//
+// My own tests above
+//

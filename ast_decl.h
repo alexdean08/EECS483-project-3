@@ -57,8 +57,11 @@ class ClassDecl : public Decl
   private:
     Hashtable<Decl*>* hash;
     List<NamedType*> *implements;
+    
+    
 
   public:
+    List<NamedType*> *interfaces_not_implemented;
     List<Decl*> *members;
     ClassDecl(Identifier *name, NamedType *extends, 
               List<NamedType*> *implements, List<Decl*> *members);
@@ -66,15 +69,21 @@ class ClassDecl : public Decl
     Decl * CheckHash(Identifier *id);
     NamedType * getExtends(){return extends;}
     List<NamedType*>* getImplements() { return implements; }
+    bool entireinterfaceimplemented = true;
+    Hashtable<List<Identifier*>*>* functions_added_per_implement;
 };
 
 class InterfaceDecl : public Decl 
 {
   protected:
     List<Decl*> *members;
+    Hashtable<Decl*>* hash;
     
   public:
     InterfaceDecl(Identifier *name, List<Decl*> *members);
+    List<Decl*> *GetMembers(){return members;}
+    Decl *CheckHash(Identifier *id);
+    bool Check(bool reportError);
 };
 
 class FnDecl : public Decl 
@@ -94,6 +103,7 @@ class FnDecl : public Decl
     Decl *CheckHash(Identifier *i);
     List<VarDecl*> *GetFormals(){ return formals;}
     Type *GetReturnType(){ return returnType;}
+    bool CompareFnDecls(FnDecl* fd);
 };
 
 #endif
