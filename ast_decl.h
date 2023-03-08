@@ -33,7 +33,7 @@ class Decl : public Node
     virtual bool Check(bool reportError);
     friend std::ostream& operator<<(std::ostream& out, Decl *d) { return out << d->id; }
     Identifier* getIdentifier() { return id; }
-    virtual Decl *CheckHash(Identifier *i) {printf("ERROR: Decl CheckHash\n"); return nullptr;}
+    virtual Decl *CheckHash(Identifier *i) {/*printf("ERROR: Decl CheckHash\n");*/ return nullptr;}
 };
 
 class VarDecl : public Decl 

@@ -1,4 +1,20 @@
 void main() {
+  B b;
+  
   Print("hello world");
+  h(b);
 }
 
+
+int Gone;
+class sdf{
+  int Gone;
+  void sdf(int Gone){
+    int Gone;
+    Gone g;
+  }
+}
+
+void root(){}
+
+bool root;

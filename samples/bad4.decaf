@@ -5,9 +5,9 @@ class Crayon {
 void main() {
   Crayon blue;
   int[] pens;
-  //this;
-  //blue = this;
-  //pens = NewArray(2, int);
+
+  blue = this;
+  pens = NewArray(2, int);
   blue.color = 10;
   pens.color = 5;
 }

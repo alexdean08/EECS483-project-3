@@ -1,162 +1,30 @@
 
+*** Error line 4.
+  if (a != 10 && 5) {
+              ^^
+*** Incompatible operands: bool && int
+
+
 *** Error line 6.
-class Number implements Printable {
-                        ^^^^^^^^^
-*** Class 'Number' does not implement entire interface 'Printable'
+    break;
+    ^^^^^
+*** break is only allowed inside a loop
 
 
 *** Error line 7.
-    void ToString(string s) {}
-         ^^^^^^^^
-*** Method 'ToString' must match inherited type signature
-
-
-*** Error line 14.
-     n = p;
-       ^
-*** Incompatible operands: Number = Printable
-
-
-*** Error line 37.
-class Class1 implements A, B {
-                        ^
-*** Class 'Class1' does not implement entire interface 'A'
-
-
-*** Error line 37.
-class Class1 implements A, B {
-                           ^
-*** Class 'Class1' does not implement entire interface 'B'
-
-
-*** Error line 38.
-   int func1(){}
-       ^^^^^
-*** Method 'func1' must match inherited type signature
-
-
-*** Error line 39.
-   string func1(){}
-          ^^^^^
-*** Declaration of 'func1' here conflicts with declaration on line 38
-
-
-*** Error line 40.
-   double func2(int b){}
-          ^^^^^
-*** Method 'func2' must match inherited type signature
-
-
-*** Error line 41.
-   double func2(){}
-          ^^^^^
-*** Declaration of 'func2' here conflicts with declaration on line 40
-
-
-*** Error line 41.
-   double func2(){}
-          ^^^^^
-*** Method 'func2' must match inherited type signature
-
-
-*** Error line 50.
-class Class2 extends Class1 implements C{
-                                       ^
-*** Class 'Class2' does not implement entire interface 'C'
-
-
-*** Error line 54.
-   int func4(){}
-       ^^^^^
-*** Method 'func4' must match inherited type signature
-
-
-*** Error line 60.
-   G func7(){}
-   ^
-*** No declaration found for type 'G'
-
-
-*** Error line 61.
-   int func8(int a, G g){}
-                    ^
-*** No declaration found for type 'G'
-
-
-*** Error line 67.
-   G func4(){} //gotta match all the way up otherwise error
-   ^
-*** No declaration found for type 'G'
-
-
-*** Error line 67.
-   G func4(){} //gotta match all the way up otherwise error
-     ^^^^^
-*** Method 'func4' must match inherited type signature
-
-
-*** Error line 68.
-   int func5(G g){}
-       ^^^^^
-*** Method 'func5' must match inherited type signature
-
-
-*** Error line 68.
-   int func5(G g){}
+  } else if (!a) 
              ^
-*** No declaration found for type 'G'
+*** Incompatible operand: ! int
 
 
-*** Error line 71.
-   int y(){}
-       ^
-*** Declaration of 'y' here conflicts with declaration on line 58
+*** Error line 10.
+  for (a = 0; a + 10 * 5; a = a + 1) {
+              ^^^^^^^^^^
+*** Test expression must have boolean type
 
 
-*** Error line 73.
-   int func7(){}
-       ^^^^^
-*** Method 'func7' must match inherited type signature
-
-
-*** Error line 74.
-   int func8(int b, G g, H h){} //doesn't need same identifier, only same type
-       ^^^^^
-*** Method 'func8' must match inherited type signature
-
-
-*** Error line 74.
-   int func8(int b, G g, H h){} //doesn't need same identifier, only same type
-                    ^
-*** No declaration found for type 'G'
-
-
-*** Error line 74.
-   int func8(int b, G g, H h){} //doesn't need same identifier, only same type
-                         ^
-*** No declaration found for type 'H'
-
-
-*** Error line 77.
-   int func6(){}
-       ^^^^^
-*** Declaration of 'func6' here conflicts with declaration on line 76
-
-
-*** Error line 90.
-   K k;
-   ^
-*** No declaration found for type 'K'
-
-
-*** Error line 92.
-   a = c.func4(); //saying that this should be a double
-     ^
-*** Incompatible operands: int = double
-
-
-*** Error line 98.
-void func(K k){}
-          ^
-*** No declaration found for type 'K'
+*** Error line 13.
+  return a;
+         ^
+*** Incompatible return: int given, void expected
 

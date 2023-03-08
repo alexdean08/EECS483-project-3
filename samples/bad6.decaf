@@ -1,6 +1,6 @@
 void main() {
   int a;
-  
+
   if (a != 10 && 5) {
     a = 10;
     break;
@@ -12,46 +12,3 @@ void main() {
   }
   return a;
 }
-
-//double t(){} //don't check if a return value is needed
-
-/*
-
-//double func(int g){return 5.4;}
-//int func2(int g){return 1;}
-class Temp{
-  //double t(){return 1.2;}
-}
-
-int b;
-double b;
-
-void main() {
-  int a;
-  bool t;
-  Temp h;
-
-  //a = h.t(a);
-  //func2() == func();
-  //t = b;
-  b = a == t;
-  //b = !b;
-
-
-  
-  a = 4.5 - 6;
-  
-  if ( a + ((a != true) == 5) == 2 ) {
-    a = 10;
-    break;
-  } else if (!a) 
-    a = 12;
-
-  for (2+2; a + 10 * 5; true) {
-	a = -a;
-  }
-  return a;
-}
-
-
-*/

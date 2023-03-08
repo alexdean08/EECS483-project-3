@@ -15,7 +15,7 @@ Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
 
 // TODO
 bool Decl::Check(bool reportError){
-    printf("Decl check\n");
+    //printf("Decl check\n");
     return true;
 }
 
@@ -26,7 +26,7 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
 }
 
 bool VarDecl::Check(bool reportError){
-    printf("VarDecl check\n");
+    ////printf("VarDecl check\n");
     if(type->Check(reportError)){
         return true;
     }
@@ -37,7 +37,7 @@ bool VarDecl::Check(bool reportError){
 }
 
 Decl *VarDecl::CheckHash(Identifier *i) {
-    printf("VarDecl CheckHash\n");
+    //printf("VarDecl CheckHash\n");
     return this->GetParent()->CheckHash(i);
 }
 
@@ -55,30 +55,55 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
 }
 
 bool ClassDecl::Check(bool reportError) {
-    
-    
 
     for(int i = 0; i < members->NumElements(); ++i){
         members->Nth(i)->Check(false);
     }
 
-    printf("BACK IN CLASS\n");
+    //printf("BACK IN CLASS\n");
+    bool valid_extends = false;
+    if(extends != NULL){
+        Identifier *i = new Identifier(*extends->GetLocation(), strdup(extends->typeName));
+        Decl *d = this->GetParent()->CheckHash(i);
+        if(dynamic_cast<ClassDecl*>(d) == NULL) {
+            if (reportError) {
+                ReportError::IdentifierNotDeclared(i, LookingForClass);
+            }
+        }
+        else{
+            valid_extends = true;
+        }
+            
+    }
 
     if(implements->NumElements() > 0){
         for(int impl = 0; impl < implements->NumElements(); ++impl){
             bool error_reported = false;
-            for(int i = 0; i < interfaces_not_implemented->NumElements(); ++i){
-                if(interfaces_not_implemented->Nth(i)->isType(implements->Nth(impl))){
-                    if(reportError)
-                        ReportError::InterfaceNotImplemented(this, implements->Nth(impl));
-                    error_reported = true;
-                    break;
+
+            Identifier *id = new Identifier(*implements->Nth(impl)->GetLocation(), strdup(implements->Nth(impl)->typeName));
+            Decl *d = this->GetParent()->CheckHash(id);
+            if(dynamic_cast<InterfaceDecl*>(d) == NULL){
+                if (reportError) {
+                    ReportError::IdentifierNotDeclared(id, LookingForInterface);
+                }
+                error_reported = true;
+            }
+            if(!error_reported){
+                for(int i = 0; i < interfaces_not_implemented->NumElements(); ++i){
+                    if(interfaces_not_implemented->Nth(i)->isType(implements->Nth(impl))){
+                        if(reportError)
+                            ReportError::InterfaceNotImplemented(this, implements->Nth(impl));
+                        error_reported = true;
+                        break;
+                    }
                 }
             }
             if(!error_reported){
                 int num_interface_elements = dynamic_cast<InterfaceDecl*>(this->GetParent()->CheckHash(implements->Nth(impl)->getIdentifier()))->GetMembers()->NumElements();
-                if(this->functions_added_per_implement->Lookup(implements->Nth(impl)->getIdentifier()->getName()) == NULL 
-                    || this->functions_added_per_implement->Lookup(implements->Nth(impl)->getIdentifier()->getName())->NumElements() != num_interface_elements){
+                //printf("%d\n", num_interface_elements);
+                if( (this->functions_added_per_implement->Lookup(implements->Nth(impl)->getIdentifier()->getName()) == NULL && num_interface_elements != 0)
+                    || (this->functions_added_per_implement->Lookup(implements->Nth(impl)->getIdentifier()->getName()) != NULL && this->functions_added_per_implement->Lookup(implements->Nth(impl)->getIdentifier()->getName())->NumElements() != num_interface_elements) ){
+                        
                         if(reportError)
                             ReportError::InterfaceNotImplemented(this, implements->Nth(impl));
                     }
@@ -86,9 +111,24 @@ bool ClassDecl::Check(bool reportError) {
         }
     }
 
-    for(int i = 0; i < members->NumElements(); ++i){
 
+    for(int i = 0; i < members->NumElements(); ++i){
+        bool error_reported = false;
         // if member already there, return error
+        
+        if(extends != NULL && valid_extends && dynamic_cast<VarDecl*>(members->Nth(i)) != NULL){
+            Identifier *mem_ident = members->Nth(i)->getIdentifier();
+            Identifier *extends_ident = new Identifier(*extends->GetLocation(), strdup(extends->typeName));
+            Decl *extends_decl = this->GetParent()->CheckHash(extends_ident);
+            Decl *mem_extends_decl = extends_decl->CheckHash(mem_ident);
+            if(mem_extends_decl != NULL){
+                if(reportError)
+                    ReportError::DeclConflict(members->Nth(i), mem_extends_decl);
+                error_reported = true;
+            }
+
+        }
+
         Decl* d = hash->Lookup(members->Nth(i)->getIdentifier()->getName());
         
         if (d == NULL) {
@@ -97,7 +137,7 @@ bool ClassDecl::Check(bool reportError) {
         }
         else {
             // ERROR
-            if(reportError)
+            if(reportError && !error_reported)
                 ReportError::DeclConflict(members->Nth(i), d);
         }
 
@@ -109,25 +149,25 @@ bool ClassDecl::Check(bool reportError) {
 }
 
 Decl * ClassDecl::CheckHash(Identifier *id){
-    printf("CLASS DECL CHECK HASH\n");
+    //printf("CLASS DECL CHECK HASH\n");
     
     Decl* members_i = NULL;
     for(int i = 0; i < members->NumElements(); ++i){
         if(strcmp(members->Nth(i)->getIdentifier()->getName(), id->getName()) == 0){
-            printf("FOUND MEMBER IN %s\n", this->getIdentifier()->getName());
+            //printf("FOUND MEMBER IN %s\n", this->getIdentifier()->getName());
             members_i = members->Nth(i); 
         }
     }
 
-    //printf("CANNoT FIND\n");
+    ////printf("CANNoT FIND\n");
 
     //HERE CHECK EXTENDS
     if(extends != NULL){
-        printf("EXTENDS CHECK\n");
+        //printf("EXTENDS CHECK\n");
         Node *parent = this->GetParent();
         if(dynamic_cast<Program*>(parent) == nullptr){
             //error. somehow class is in some function or something instead of directly in program? Don't think this is even possible. Probably syntax error.
-            printf("Error: ClassDecl parent is not program\n");
+            //printf("Error: ClassDecl parent is not program\n");
         }
 
         yyltype y;
@@ -135,19 +175,19 @@ Decl * ClassDecl::CheckHash(Identifier *id){
         Decl* d = parent->CheckHash(i);
         //d->Check(false);
         if(d->type->IsEquivalentTo(Type::errorType) || dynamic_cast<ClassDecl*>(d) == nullptr){
-            printf("Extends check did not find class\n");
+            //printf("Extends check did not find class\n");
             
             /*Decl *temp = new Decl(id);
             temp->type = Type::errorType;
             return temp;*/
         }
         else{
-            printf("Extends check found class\n");
+            //printf("Extends check found class\n");
             ClassDecl *cd = dynamic_cast<ClassDecl*>(d);
             Decl *h = cd->CheckHash(id);
             
             if(h != NULL){// && !h->type->IsEquivalentTo(Type::errorType)){
-                printf("Extends check found. Return\n");
+                //printf("Extends check found. Return\n");
                 return h;
             }
             
@@ -175,12 +215,12 @@ InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
 }
 
 bool InterfaceDecl::Check(bool reportError) {
-    printf("INTERFACE CHECK\n");
+    //printf("INTERFACE CHECK\n");
     for(int i = 0; i < members->NumElements(); ++i){
 
         // if member already there, return error
-        printf("%s\n", members->Nth(i)->getIdentifier()->getName());
-        printf("SDFDSF\n");
+        //printf("%s\n", members->Nth(i)->getIdentifier()->getName());
+        //printf("SDFDSF\n");
 
         Decl* d = hash->Lookup(members->Nth(i)->getIdentifier()->getName());
         
@@ -195,7 +235,7 @@ bool InterfaceDecl::Check(bool reportError) {
         }
 
     }
-    printf("ADD ALL TO HASH\n");
+    //printf("ADD ALL TO HASH\n");
     for(int i = 0; i < members->NumElements(); ++i){
         members->Nth(i)->Check(reportError);
     }
@@ -205,7 +245,7 @@ bool InterfaceDecl::Check(bool reportError) {
 Decl *InterfaceDecl::CheckHash(Identifier *id){
     for(int i = 0; i < this->GetMembers()->NumElements(); ++i){
         if(strcmp(this->GetMembers()->Nth(i)->getIdentifier()->getName(), id->getName()) == 0){
-            printf("Found Fn in Interface\n");
+            //printf("Found Fn in Interface\n");
             return this->GetMembers()->Nth(i);
         }
     }
@@ -247,13 +287,13 @@ bool FnDecl::CompareFnDecls(FnDecl* fd){
 
 bool FnDecl::Check(bool reportError) {
 
-    printf("FnDecl Check\n");
+    //printf("FnDecl Check\n");
     //check to see if inheriting function from somewhere
     returnType->Check(reportError);
     
     Node *parent = this->GetParent();
     if(dynamic_cast<ClassDecl*>(parent) != nullptr){
-        printf("Functino is in Class\n");
+        //printf("Functino is in Class\n");
         ClassDecl* cd = dynamic_cast<ClassDecl*>(parent);
         Decl* d = cd->CheckHash(this->getIdentifier()); //looks back in extends first, then current class
         if(d != NULL && d->GetParent() != this->GetParent()){
@@ -261,14 +301,14 @@ bool FnDecl::Check(bool reportError) {
                 // Error Declaration of '___' here conflicts with declaration on line ___
                 if(reportError)
                     ReportError::DeclConflict(this, d);
-                //printf("--------------------------------------------------------\n");
+                ////printf("--------------------------------------------------------\n");
             }
             else{
                 FnDecl* fd = dynamic_cast<FnDecl*>(d);
                 //check return type and parameters
                 if(!CompareFnDecls(fd)){
                     //report error
-                    //printf("---------------------------------------------------------\n");
+                    ////printf("---------------------------------------------------------\n");
                     if(reportError)
                         ReportError::OverrideMismatch(this);
                 }
@@ -277,7 +317,7 @@ bool FnDecl::Check(bool reportError) {
         }
         else{
             //Check implements
-            printf("Implement Check\n");
+            //printf("Implement Check\n");
             Node *program = parent->GetParent();
             
             for(int i = 0; i < cd->getImplements()->NumElements(); ++i){
@@ -298,7 +338,7 @@ bool FnDecl::Check(bool reportError) {
                             
                             cd->interfaces_not_implemented->Append(cd->getImplements()->Nth(i));
                             
-                            //printf("---------------------------------------------------------\n");
+                            ////printf("---------------------------------------------------------\n");
                             if(reportError)
                                 ReportError::OverrideMismatch(this);
                             break;
@@ -322,7 +362,7 @@ bool FnDecl::Check(bool reportError) {
     if(!reportError)
         return true;
 
-    printf("Out of class\n");
+    //printf("Out of class\n");
 
     // loop through formals
     
@@ -351,7 +391,7 @@ bool FnDecl::Check(bool reportError) {
 }
 
 Decl *FnDecl::CheckHash(Identifier *i) {
-    printf("FnDecl CheckHash\n");
+    //printf("FnDecl CheckHash\n");
     for(int in = 0; in < formals->NumElements(); ++in){
         if(strcmp(formals->Nth(in)->getIdentifier()->getName(), (i)->getName() ) == 0) {
             

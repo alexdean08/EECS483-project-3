@@ -39,15 +39,20 @@ NamedType::NamedType(Identifier *i) : Type(*i->GetLocation()) {
 
 bool NamedType::Check(bool reportError) {
 
-    printf("NAMED CHECK\n");
+    //printf("NAMED CHECK\n");
 
-    Decl* d = this->GetParent()->CheckHash(id);
+    Node* parent = this->GetParent();
+    while(dynamic_cast<Program *>(parent) == NULL){
+        parent = parent->GetParent();
+    }
 
-    printf("NAMED CHECK 2\n");
+    Decl* d = parent->CheckHash(id);
 
-    if (d == NULL) {
+    //printf("NAMED CHECK 2\n");
+    //printf("%s\n", d->type); 
+    if (d == NULL || (dynamic_cast<ClassDecl*>(d) == NULL && dynamic_cast<InterfaceDecl*>(d) == NULL)) {
         // Could not find declaration
-        printf("NOT DECLARIED\n");
+        //printf("NOT DECLARIED\n");
         
         if (reportError) {
             
@@ -56,6 +61,8 @@ bool NamedType::Check(bool reportError) {
 
         return false;
     }
+
+    
 
     // Type * CheckedHash = d->type;
     // //printf("\n\n%c\n\n\n\n", *(CheckedHash->typeName));
@@ -68,6 +75,30 @@ bool NamedType::Check(bool reportError) {
         
     //     return false;
     // }
+    return true;
+}
+
+bool NamedType::CheckNew(bool reportError) {
+    Node* parent = this->GetParent();
+    while(dynamic_cast<Program *>(parent) == NULL){
+        parent = parent->GetParent();
+    }
+
+    Decl* d = parent->CheckHash(id);
+
+    //printf("NAMED CHECK 2\n");
+    //printf("%s\n", d->type); 
+    if (d == NULL || (dynamic_cast<ClassDecl*>(d) == NULL && dynamic_cast<InterfaceDecl*>(d) == NULL)) {
+        // Could not find declaration
+        //printf("NOT DECLARIED\n");
+        
+        if (reportError) {
+            
+            ReportError::IdentifierNotDeclared(id, LookingForClass);
+        }
+
+        return false;
+    }
     return true;
 }
 
@@ -122,7 +153,7 @@ ArrayType::ArrayType(yyltype loc, Type *et) : Type(loc) {
 }
 
 bool ArrayType::Check(bool reportError) {
-    printf("ArrayType check\n");
+    //printf("ArrayType check\n");
     elemType->Check(reportError);
     return true;
 }

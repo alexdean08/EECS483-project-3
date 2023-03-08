@@ -85,7 +85,7 @@ class NullConstant: public Expr
     double i_am_null;
   public: 
     NullConstant(yyltype loc) : Expr(loc) {type = Type::nullType;}
-    bool Check(bool reportError){printf("NULL CHECK\n"); type = Type::nullType; return true;}
+    bool Check(bool reportError){/*printf("NULL CHECK\n");*/ type = Type::nullType; return true;}
 };
 
 class Operator : public Node 
@@ -234,12 +234,16 @@ class NewArrayExpr : public Expr
 
 class ReadIntegerExpr : public Expr
 {
+  private:
+    int a;
   public:
     ReadIntegerExpr(yyltype loc) : Expr(loc) {}
 };
 
 class ReadLineExpr : public Expr
 {
+  private:
+    double g;
   public:
     ReadLineExpr(yyltype loc) : Expr (loc) {}
 };

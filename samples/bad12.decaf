@@ -15,6 +15,7 @@ void main() {
   New(A);
   New(Treat);
   NewArray(10, Trick);
+  NewArray(10, Treat);
 }
 
 

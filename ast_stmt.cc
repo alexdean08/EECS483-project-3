@@ -34,7 +34,8 @@ bool Program::Check(bool reportError) {
         }
         else if(d!=decls->Nth(i)){
             // ERROR
-            ReportError::DeclConflict(decls->Nth(i), d);
+            if(reportError)
+                ReportError::DeclConflict(decls->Nth(i), d);
         }
         
     }
@@ -46,11 +47,11 @@ bool Program::Check(bool reportError) {
 }
 
 Decl * Program::CheckHash(Identifier *i){
-    printf("PROGRAM CHECK HASH\n");
+    //printf("PROGRAM CHECK HASH\n");
     for(int in = 0; in < decls->NumElements(); ++in){
         if(strcmp(decls->Nth(in)->getIdentifier()->getName(), (i)->getName() ) == 0) {
             //printf("%d\n", decls->Nth(in)->type->GetLocation()->first_line);
-            printf("FIUND\n");
+            //printf("FIUND\n");
             return decls->Nth(in);
         }
     }
@@ -62,14 +63,15 @@ Decl * Program::CheckHash(Identifier *i){
 }
 
 bool Stmt::Check(bool reportError) {
-    printf("stmt\n");
+    //printf("stmt\n");
     if(dynamic_cast<BreakStmt*>(this) != nullptr){
         BreakStmt* this_bs = dynamic_cast<BreakStmt*>(this);
-        printf("BREAKSTMT\n");
+        //printf("BREAKSTMT\n");
         Node* parent = this->GetParent();
         while(true){
             if(dynamic_cast<Program*>(parent) != nullptr){
-                ReportError::BreakOutsideLoop(this_bs);
+                if(reportError)
+                    ReportError::BreakOutsideLoop(this_bs);
                 return false;
             }
             else if(dynamic_cast<LoopStmt*>(parent) != nullptr){
@@ -85,13 +87,13 @@ bool Stmt::Check(bool reportError) {
 }
 
 Decl * Stmt::CheckHash(Identifier *i){
-    printf("Stmt CheckHash\n");
+    //printf("Stmt CheckHash\n");
     //printf("running CheckHash in Stmt\n");
     return this->GetParent()->CheckHash(i);
 }
 
 bool StmtBlock::Check(bool reportError) {
-    printf("stmt block check \n");
+    //printf("stmt block check \n");
     //printf(this->GetParent()->);
     //printf("\n");
 
@@ -110,34 +112,35 @@ bool StmtBlock::Check(bool reportError) {
         }
         else {
             // ERROR
-            ReportError::DeclConflict(decls->Nth(i), d);
+            if(reportError)
+                ReportError::DeclConflict(decls->Nth(i), d);
         }
 
-        decls->Nth(i)->Check(reportError);
+        //decls->Nth(i)->Check(reportError);
     }
    
     for(int i = 0; i < stmts->NumElements(); ++i) {
         Stmt* s = stmts->Nth(i);
         if(dynamic_cast<This*>(stmts->Nth(i)) != nullptr){
-            printf("Running this check\n");
+            //printf("Running this check\n");
             dynamic_cast<This*>(s)->Check(reportError);
         }
         else if(dynamic_cast<BreakStmt*>(stmts->Nth(i)) != nullptr){
-            printf("Running break check\n");
+            //printf("Running break check\n");
             static_cast<BreakStmt*>(s)->Check(reportError);
         }
         else{
             s->Check(reportError);
         }
         
-        printf("done check\n");
+        //printf("done check\n");
     }
     return true;
 }
 
 Decl *StmtBlock::CheckHash(Identifier *i) {
     
-    printf("stmt block check hash\n");
+    //printf("stmt block check hash\n");
 
     for(int in = 0; in < decls->NumElements(); ++in){
 
@@ -166,12 +169,13 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
 
 
 bool ConditionalStmt::Check(bool reportError) {
-    printf("Conditional check\n");
+    //printf("Conditional check\n");
     test->Check(reportError);
     //printf("%d\n", test->GetLocation()->first_line);
     
     if(!test->type->IsEquivalentTo(Type::boolType)){
-        ReportError::TestNotBoolean(test);
+        if(reportError)
+            ReportError::TestNotBoolean(test);
     }
     
 
@@ -186,12 +190,15 @@ ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) {
 }
 
 bool ForStmt::Check(bool reportError){
-    printf("For Stmt Check\n");
+    //printf("For Stmt Check\n");
     init->Check(reportError);
     test->Check(reportError);
-    if(! (test->type->IsEquivalentTo(Type::boolType) || test->type->IsEquivalentTo(Type::errorType)) )
-        ReportError::TestNotBoolean(test);
+    if(! (test->type->IsEquivalentTo(Type::boolType) || test->type->IsEquivalentTo(Type::errorType)) ){
+        if(reportError)
+            ReportError::TestNotBoolean(test);
+    }
     step->Check(reportError);
+    body->Check(reportError);
     return true;
 
 }
@@ -203,14 +210,16 @@ IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) {
 }
 
 bool IfStmt::Check(bool reportError) {
-    printf("If stmt check\n");
+    //printf("If stmt check\n");
     test->Check(reportError);
+
     //printf("%d\n", test->GetLocation()->first_line);
     if(!test->type->IsEquivalentTo(Type::boolType)){
-        ReportError::TestNotBoolean(test);
+        if(reportError)
+            ReportError::TestNotBoolean(test);
     }
 
-    
+    //printf("not error type\n");
     
     body->Check(reportError);
     if(elseBody)
@@ -220,22 +229,23 @@ bool IfStmt::Check(bool reportError) {
 
 
 Decl *IfStmt::CheckHash(Identifier *i) {
-    printf("IfStmt CheckHash\n");
+    //printf("IfStmt CheckHash\n");
     return this->GetParent()->CheckHash(i);
 }
 
 /*bool LoopStmt::Check(bool reportError) {
-    printf("LoopStmt check\n");
+    //printf("LoopStmt check\n");
     return true;
 }*/
 
 bool WhileStmt::Check(bool reportError) {
-    printf("While check\n");
+    //printf("While check\n");
     test->Check(reportError);
     //printf("%d\n", test->GetLocation()->first_line);
     
     if(!test->type->IsEquivalentTo(Type::boolType)){
-        ReportError::TestNotBoolean(test);
+        if(reportError)
+            ReportError::TestNotBoolean(test);
     }
     
 
@@ -245,7 +255,7 @@ bool WhileStmt::Check(bool reportError) {
 
 
 Decl *WhileStmt::CheckHash(Identifier *i) {
-    printf("WhileStmt CheckHash\n");
+    //printf("WhileStmt CheckHash\n");
     return this->GetParent()->CheckHash(i);
 }
 
@@ -256,7 +266,7 @@ ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) {
 }
 
 bool ReturnStmt::Check(bool reportError){
-    printf("Return Stmt Check\n");
+    //printf("Return Stmt Check\n");
     expr->Check(reportError);
 
     Node* parent = this->GetParent();
@@ -265,6 +275,11 @@ bool ReturnStmt::Check(bool reportError){
     }
     FnDecl *fn = dynamic_cast<FnDecl*>(parent);
     Type *rt = fn->GetReturnType();
+
+    if(!rt->IsEquivalentTo(Type::voidType) && expr->type == NULL) {
+        ReportError::ReturnMismatch(this, Type::voidType, rt);
+        return false;
+    }
 
     if(rt->IsEquivalentTo(Type::voidType) && expr->type == NULL){
         return true;
@@ -292,6 +307,8 @@ bool ReturnStmt::Check(bool reportError){
             }
         }
     }
+
+    return true;
 }
   
 PrintStmt::PrintStmt(List<Expr*> *a) {    
@@ -312,16 +329,17 @@ bool PrintStmt::Check(bool reportError){
 }
 
 BreakStmt::BreakStmt(yyltype loc) : Stmt(loc){
-    printf("BREAK STMT CREATED\n");
+    //printf("BREAK STMT CREATED\n");
     breaks = true;
 }
 
 bool BreakStmt::Check(bool reportError){
-    printf("BREAKSTMT\n");
+    //printf("BREAKSTMT\n");
     Node* parent = this->GetParent();
     while(true){
         if(dynamic_cast<Program*>(parent) != nullptr){
-            ReportError::BreakOutsideLoop(this);
+            if(reportError)
+                ReportError::BreakOutsideLoop(this);
             return false;
         }
         else if(dynamic_cast<LoopStmt*>(parent) != nullptr){

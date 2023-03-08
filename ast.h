@@ -49,7 +49,10 @@ class Node
     yyltype *GetLocation()   { return location; }
     void SetParent(Node *p)  { parent = p; }
     Node *GetParent()        { return parent; }
-    virtual Decl *CheckHash(Identifier *i) { printf("Node class CheckHash()\n"); return NULL; }
+    virtual Decl *CheckHash(Identifier *i) { 
+      //printf("Node class CheckHash()\n"); 
+      return NULL; 
+      }
 };
    
 
